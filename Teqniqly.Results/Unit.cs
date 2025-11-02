@@ -1,7 +1,7 @@
 namespace Teqniqly.Results
 {
-  public record struct Unit
-  {
-    public static readonly Unit Value;
-  }
+    public record struct Unit
+    {
+        public static readonly Unit Value;
+    }
 }
