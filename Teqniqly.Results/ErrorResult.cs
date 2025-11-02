@@ -1,6 +1,6 @@
 ﻿namespace Teqniqly.Results
 {
-    public sealed class ErrorResult<T> : IResult<T>
+    internal sealed class ErrorResult<T> : IResult<T>
     {
         private readonly Error _error;
 

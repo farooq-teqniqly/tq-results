@@ -1,6 +1,6 @@
 ﻿namespace Teqniqly.Results;
 
-public sealed class SuccessResult<T> : IResult<T>
+internal sealed class SuccessResult<T> : IResult<T>
 {
     private readonly T _value;
 
