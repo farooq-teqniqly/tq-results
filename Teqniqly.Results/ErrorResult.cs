@@ -1,16 +1,16 @@
 namespace Teqniqly.Results
 {
-  public sealed class ErrorResult<T> : Result<T>
+  public sealed class ErrorResult<T> : IResult<T>
   {
     private readonly Error _error;
 
-    public override bool IsFailure => true;
-    public override bool IsSuccess => false;
-
     public ErrorResult(Error error) => _error = error;
 
-    public override Error GetError() => _error;
+    public bool IsFailure => true;
+    public bool IsSuccess => false;
 
-    public override T GetValue() => default!;
+    public Error GetError() => _error;
+
+    public T GetValue() => default!;
   }
 }

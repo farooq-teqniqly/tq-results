@@ -1,17 +1,17 @@
 namespace Teqniqly.Results
 {
-  public static class Result
+  public interface IResult<out T>
   {
-    public static Result<T> Failure<T>(Error error) => new ErrorResult<T>(error);
-
-    public static Result<T> Success<T>(T value) => new SuccessResult<T>(value);
+    bool IsFailure { get; }
+    bool IsSuccess { get; }
+    Error GetError();
+    T GetValue();
   }
 
-  public abstract class Result<T>
+  public static class Result
   {
-    public abstract bool IsFailure { get; }
-    public abstract bool IsSuccess { get; }
-    public abstract Error GetError();
-    public abstract T GetValue();
+    public static IResult<T> Failure<T>(Error error) => new ErrorResult<T>(error);
+
+    public static IResult<T> Success<T>(T value) => new SuccessResult<T>(value);
   }
 }

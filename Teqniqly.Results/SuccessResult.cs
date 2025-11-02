@@ -1,15 +1,15 @@
 namespace Teqniqly.Results;
 
-public sealed class SuccessResult<T> : Result<T>
+public sealed class SuccessResult<T> : IResult<T>
 {
   private readonly T _value;
 
-  public override bool IsFailure => false;
-  public override bool IsSuccess => true;
-
   public SuccessResult(T value) => _value = value;
 
-  public override Error GetError() => null!;
+  public bool IsFailure => false;
+  public bool IsSuccess => true;
 
-  public override T GetValue() => _value;
+  public Error GetError() => null!;
+
+  public T GetValue() => _value;
 }

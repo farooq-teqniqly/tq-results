@@ -81,3 +81,7 @@ dotnet_style_object_initializer = true:suggestion
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
 
+[Teqniqly.Results/Error.cs]
+# CA1716: Identifiers should not match keywords
+dotnet_diagnostic.CA1716.severity = none
+
