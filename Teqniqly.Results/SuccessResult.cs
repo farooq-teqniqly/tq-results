@@ -9,7 +9,7 @@ public sealed class SuccessResult<T> : IResult<T>
   public bool IsFailure => false;
   public bool IsSuccess => true;
 
-  public Error GetError() => null!;
+  public IError GetError() => null!;
 
   public T GetValue() => _value;
 }

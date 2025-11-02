@@ -2,14 +2,14 @@ namespace Teqniqly.Results
 {
   public sealed class ErrorResult<T> : IResult<T>
   {
-    private readonly Error _error;
+    private readonly IError _error;
 
-    public ErrorResult(Error error) => _error = error;
+    public ErrorResult(IError error) => _error = error;
 
     public bool IsFailure => true;
     public bool IsSuccess => false;
 
-    public Error GetError() => _error;
+    public IError GetError() => _error;
 
     public T GetValue() => default!;
   }
