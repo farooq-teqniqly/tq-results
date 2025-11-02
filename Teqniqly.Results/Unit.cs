@@ -1,4 +1,4 @@
-namespace Teqniqly.Results
+﻿namespace Teqniqly.Results
 {
     public record struct Unit
     {
