@@ -2,6 +2,7 @@
 description: Git workflow and remote operations safety guidelines
 author: team
 version: 1.0
+globs: ["**/*"]
 tags: ["git-workflow", "safety"]
 ---
 
