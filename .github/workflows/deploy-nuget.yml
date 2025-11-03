@@ -31,6 +31,15 @@ jobs:
     - name: Run tests
       run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts-${{ matrix.dotnet-version }}
+        path: |
+          Teqniqly.Results/bin/Release/
+          Teqniqly.Results/obj/Release/
+        retention-days: 1
+
   deploy:
     name: Deploy to NuGet
     runs-on: ubuntu-latest
@@ -54,14 +63,11 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Extracted version: $VERSION"
 
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build solution
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Run tests
-      run: dotnet test --configuration Release --no-build --verbosity normal
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts-9.0.x
+        path: Teqniqly.Results/
 
     - name: Pack NuGet package
       run: dotnet pack Teqniqly.Results/Teqniqly.Results.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }}
