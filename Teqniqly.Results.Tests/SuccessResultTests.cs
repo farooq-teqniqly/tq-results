@@ -46,7 +46,15 @@ namespace Teqniqly.Results.Tests
 
             Assert.True(result.IsSuccess);
             Assert.False(result.IsFailure);
-            Assert.Null(result.GetError());
+
+            var exception = Assert.Throws<InvalidOperationException>(() => result.GetError());
+
+            Assert.Contains(
+                "Cannot retrieve an error from a successful result",
+                exception.Message,
+                StringComparison.OrdinalIgnoreCase
+            );
+
             Assert.Equal(expectedValue, result.GetValue());
         }
     }

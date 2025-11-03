@@ -18,15 +18,19 @@ namespace Teqniqly.Results
         public bool IsSuccess { get; }
 
         /// <summary>
-        /// Gets the error that occurred during the operation, if any.
+        /// Gets the error that occurred during the operation.
+        /// This method should only be called when <see cref="IsFailure"/> is true.
         /// </summary>
-        /// <returns>The error details.</returns>
+        /// <returns>The error details containing information about what went wrong.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when called on a successful result.</exception>
         public Error GetError();
 
         /// <summary>
         /// Gets the value returned by the operation on success.
+        /// This method should only be called when <see cref="IsSuccess"/> is true.
         /// </summary>
         /// <returns>The operation result value.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when called on a failure result.</exception>
         public T GetValue();
     }
 

@@ -25,6 +25,7 @@ namespace Teqniqly.Results
         public Error GetError() => _error;
 
         /// <inheritdoc/>
-        public T GetValue() => default!;
+        public T GetValue() =>
+            throw new InvalidOperationException("Cannot retrieve an value from a failure result");
     }
 }

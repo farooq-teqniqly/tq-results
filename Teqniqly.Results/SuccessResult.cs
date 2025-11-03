@@ -22,7 +22,8 @@ internal sealed class SuccessResult<T> : IResult<T>
     public bool IsSuccess => true;
 
     /// <inheritdoc/>
-    public Error GetError() => null!;
+    public Error GetError() =>
+        throw new InvalidOperationException("Cannot retrieve an error from a successful result");
 
     /// <inheritdoc/>
     public T GetValue() => _value;
