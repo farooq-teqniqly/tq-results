@@ -41,7 +41,7 @@ namespace Teqniqly.Results.Tests
             var exception = Assert.Throws<InvalidOperationException>(() => result.GetValue());
 
             Assert.Contains(
-                "Cannot retrieve an value from a failure result",
+                "Cannot retrieve a value from a failure result",
                 exception.Message,
                 StringComparison.OrdinalIgnoreCase
             );

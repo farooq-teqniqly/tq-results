@@ -26,6 +26,6 @@ namespace Teqniqly.Results
 
         /// <inheritdoc/>
         public T GetValue() =>
-            throw new InvalidOperationException("Cannot retrieve an value from a failure result");
+            throw new InvalidOperationException("Cannot retrieve a value from a failure result");
     }
 }
