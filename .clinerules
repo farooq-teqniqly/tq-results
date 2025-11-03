@@ -1,3 +1,10 @@
+---
+description: Git workflow and remote operations safety guidelines
+author: team
+version: 1.0
+tags: ["git-workflow", "safety"]
+---
+
 # Git Workflow Rules
 
 ## Branch Management
