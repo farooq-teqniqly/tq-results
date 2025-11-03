@@ -13,7 +13,7 @@ namespace WebApiSample.Controllers
         {
             var result = WeatherForecastService.GetWeatherForecast(city);
 
-            if (!result.IsFailure)
+            if (result.IsSuccess)
             {
                 return Ok(result.GetValue());
             }
