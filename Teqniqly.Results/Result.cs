@@ -1,4 +1,4 @@
-﻿namespace Teqniqly.Results
+namespace Teqniqly.Results
 {
     /// <summary>
     /// Represents the result of an operation that can either succeed or fail.
@@ -42,7 +42,12 @@
         /// <typeparam name="T">The type of the value that would have been returned on success.</typeparam>
         /// <param name="error">The error that occurred.</param>
         /// <returns>A result representing failure.</returns>
-        public static IResult<T> Failure<T>(Error error) => new ErrorResult<T>(error);
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="error"/> is null.</exception>
+        public static IResult<T> Failure<T>(Error error)
+        {
+            ArgumentNullException.ThrowIfNull(error);
+            return new ErrorResult<T>(error);
+        }
 
         /// <summary>
         /// Creates a successful result with the specified value.
@@ -50,6 +55,11 @@
         /// <typeparam name="T">The type of the result value.</typeparam>
         /// <param name="value">The value returned by the successful operation.</param>
         /// <returns>A result representing success.</returns>
-        public static IResult<T> Success<T>(T value) => new SuccessResult<T>(value);
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+        public static IResult<T> Success<T>(T value)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            return new SuccessResult<T>(value);
+        }
     }
 }

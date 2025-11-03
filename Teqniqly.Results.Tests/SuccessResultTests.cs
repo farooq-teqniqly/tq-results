@@ -2,6 +2,12 @@ namespace Teqniqly.Results.Tests
 {
     public class SuccessResultTests
     {
+        [Fact]
+        public void SuccessResult_When_Value_Null_Throws_Exception()
+        {
+            Assert.Throws<ArgumentNullException>(() => Result.Success((string)null!));
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]

@@ -25,6 +25,12 @@ namespace Teqniqly.Results.Tests
         [Fact]
         public void FailureResult_WithUnit_Should_Work() => TestFailureResult<Unit>();
 
+        [Fact]
+        public void FailuresResult_When_Error_Null_Throws_Exception()
+        {
+            Assert.Throws<ArgumentNullException>(() => Result.Failure<string>(null!));
+        }
+
         private static void TestFailureResult<T>()
         {
             var result = Result.Failure<T>(new TestError("ERROR"));
