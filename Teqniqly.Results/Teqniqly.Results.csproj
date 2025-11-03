@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <PackageId>Teqniqly.Results</PackageId>
+      <Version>1.0.0-beta</Version>
+      <Authors>Teqniqly</Authors>
+      <Description>A results library for .NET providing a functional approach to error handling.</Description>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <RepositoryUrl>https://github.com/farooq-teqniqly/tq-results</RepositoryUrl>
+      <PackageTags>results;functional;error-handling</PackageTags>
+  </PropertyGroup>
+</Project>

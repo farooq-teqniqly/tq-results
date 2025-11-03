@@ -1,0 +1,11 @@
+@WebApiSample_HostAddress = http://localhost:5166
+
+### THis request returns 200
+GET {{WebApiSample_HostAddress}}/weatherforecast/seattle
+Accept: application/json
+
+### This request returns 400
+GET {{WebApiSample_HostAddress}}/weatherforecast/boston
+Accept: application/json
+
+###
