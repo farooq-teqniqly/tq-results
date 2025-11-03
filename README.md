@@ -64,7 +64,7 @@ public sealed record UserNotFoundError(string Message, int UserId) : Error(Messa
 public sealed record ValidationError(string Message, string Field) : Error(Message);
 ```
 
-2. **Return results** from your methods:
+1. **Return results** from your methods:
 
 ```csharp
 public IResult<User> CreateUser(CreateUserRequest request)
@@ -81,7 +81,7 @@ public IResult<User> CreateUser(CreateUserRequest request)
 }
 ```
 
-3. **Handle results** in your calling code:
+1. **Handle results** in your calling code:
 
 ```csharp
 var result = userService.CreateUser(request);
