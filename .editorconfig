@@ -84,3 +84,15 @@ dotnet_diagnostic.CA1707.severity = none
 # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
 
+
+[samples/WebApiSample/Controllers/WeatherForecastController.cs]
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none
+
+[samples/WebApiSample/WeatherForecast.cs]
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none
+
+[samples/WebApiSample/Program.cs]
+# CA2007: Do not directly await a Task
+dotnet_diagnostic.CA2007.severity = none
