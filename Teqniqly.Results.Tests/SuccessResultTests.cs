@@ -14,7 +14,7 @@ namespace Teqniqly.Results.Tests
         public void SuccessResult_WithBool_ShouldWork(bool value) => TestSuccessResult(value);
 
         [Fact]
-        public void SuccessResult_WithComplexType_Should_Work()
+        public void SuccessResult_WithComplexType_ShouldWork()
         {
             var value = new
             {
