@@ -18,11 +18,13 @@ The sample implements a simple weather forecast API that returns weather data fo
 Returns weather forecast data for the specified city.
 
 **Example Request:**
-```
+
+```text
 GET /WeatherForecast/Seattle
 ```
 
 **Example Success Response (200 OK):**
+
 ```json
 [
   {
@@ -41,6 +43,7 @@ GET /WeatherForecast/Seattle
 ```
 
 **Example Error Response (404 Not Found):**
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
@@ -113,9 +116,11 @@ public ActionResult<IEnumerable<WeatherForecast>> Get([FromRoute] string city)
 1. Ensure you have the .NET SDK installed
 2. Navigate to the `samples/WebApiSample` directory
 3. Run the application:
+
    ```bash
    dotnet run
    ```
+
 4. The API will be available at `https://localhost:5001` (or similar, check the console output)
 5. Test the endpoints using the provided `WebApiSample.http` file or tools like Postman/curl
 
