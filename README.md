@@ -73,7 +73,7 @@ public IResult<User> GetUser(int id)
 Add the library to your project:
 
 ```bash
-dotnet add package Teqniqly.Results
+dotnet add package Teqniqly.Results --prerelease
 ```
 
 Or reference the project directly in your solution.
