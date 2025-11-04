@@ -8,6 +8,23 @@
 
 A lightweight, type-safe Result pattern library for C# that eliminates the need for exceptions in control flow and provides explicit error handling.
 
+## Table of Contents
+
+- [Teqniqly.Results](#teqniqlyresults)
+  - [Table of Contents](#table-of-contents)
+  - [The Problem](#the-problem)
+  - [The Solution](#the-solution)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Basic Usage](#basic-usage)
+    - [Advanced Usage](#advanced-usage)
+  - [Samples](#samples)
+  - [Running Tests](#running-tests)
+  - [Key Types](#key-types)
+  - [Benefits](#benefits)
+  - [Design Principles](#design-principles)
+  - [API Reference](#api-reference)
+
 ## The Problem
 
 Traditional error handling in C# often relies on exceptions, which can be problematic for control flow:
