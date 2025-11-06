@@ -111,9 +111,8 @@ jobs:
           # Pull latest changes with rebase
           git pull --rebase origin main
 
-          # Commit and push
-          git commit -m "chore: update performance baseline - $(date +%Y-%m-%d)"
-          git push
+          # Push only if we’re ahead
+          git rev-list --count origin/main..HEAD | grep -q '^[1-9][0-9]*$' && git push || echo "Nothing to push."
       - name: Create issue for regressions
         if: steps.regression-check.outputs.has_regression == 'true'
         uses: actions/github-script@v7
