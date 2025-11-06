@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{02EA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiSample", "samples\WebApiSample\WebApiSample.csproj", "{C41E994F-73E2-4B54-B2DB-7561F1604456}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Teqniqly.Results.Benchmarks", "Teqniqly.Results.Benchmarks\Teqniqly.Results.Benchmarks.csproj", "{B9D51EBE-8B3C-49F9-8DA9-EEC0F66F6B3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{C41E994F-73E2-4B54-B2DB-7561F1604456}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C41E994F-73E2-4B54-B2DB-7561F1604456}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C41E994F-73E2-4B54-B2DB-7561F1604456}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9D51EBE-8B3C-49F9-8DA9-EEC0F66F6B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9D51EBE-8B3C-49F9-8DA9-EEC0F66F6B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9D51EBE-8B3C-49F9-8DA9-EEC0F66F6B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9D51EBE-8B3C-49F9-8DA9-EEC0F66F6B3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
