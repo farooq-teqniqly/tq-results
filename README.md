@@ -10,29 +10,29 @@ A lightweight, type-safe Result pattern library for C# that eliminates the need 
 
 ## Table of Contents
 
-- [Teqniqly.Results](#teqniqlyresults)
-  - [Table of Contents](#table-of-contents)
-  - [The Problem](#the-problem)
-  - [The Solution](#the-solution)
-  - [Getting Started](#getting-started)
-    - [Installation](#installation)
-    - [Basic Usage](#basic-usage)
-    - [Advanced Usage](#advanced-usage)
-  - [Samples](#samples)
-  - [Running Tests](#running-tests)
-  - [Key Types](#key-types)
-  - [Benefits](#benefits)
-  - [Design Principles](#design-principles)
-  - [API Reference](#api-reference)
+-   [Teqniqly.Results](#teqniqlyresults)
+    -   [Table of Contents](#table-of-contents)
+    -   [The Problem](#the-problem)
+    -   [The Solution](#the-solution)
+    -   [Getting Started](#getting-started)
+        -   [Installation](#installation)
+        -   [Basic Usage](#basic-usage)
+        -   [Advanced Usage](#advanced-usage)
+    -   [Samples](#samples)
+    -   [Running Tests](#running-tests)
+    -   [Key Types](#key-types)
+    -   [Benefits](#benefits)
+    -   [Design Principles](#design-principles)
+    -   [API Reference](#api-reference)
 
 ## The Problem
 
 Traditional error handling in C# often relies on exceptions, which can be problematic for control flow:
 
-- **Performance**: Exceptions are expensive and should be reserved for truly exceptional circumstances
-- **Clarity**: Method signatures don't indicate possible failure modes
-- **Type Safety**: Callers can forget to handle errors, leading to runtime exceptions
-- **Debugging**: Exception stack traces can obscure the actual business logic flow
+-   **Performance**: Exceptions are expensive and should be reserved for truly exceptional circumstances
+-   **Clarity**: Method signatures don't indicate possible failure modes
+-   **Type Safety**: Callers can forget to handle errors, leading to runtime exceptions
+-   **Debugging**: Exception stack traces can obscure the actual business logic flow
 
 ## The Solution
 
@@ -138,7 +138,7 @@ return result.GetError() switch
 
 Explore the included samples to see the library in action:
 
-- **[WebApiSample](samples/WebApiSample/README.md)**: A complete ASP.NET Core Web API demonstrating the Result pattern with proper HTTP status code mapping and custom error types.
+-   **[WebApiSample](samples/WebApiSample/README.md)**: A complete ASP.NET Core Web API demonstrating the Result pattern with proper HTTP status code mapping and custom error types.
 
 ## Running Tests
 
@@ -157,33 +157,52 @@ dotnet test --verbosity normal
 
 The tests cover:
 
-- Success and failure result creation
-- Type safety with generic results
-- Error handling patterns
-- Complex type support
+-   Success and failure result creation
+-   Type safety with generic results
+-   Error handling patterns
+-   Complex type support
+
+## Performance Benchmarks
+
+The library includes comprehensive CPU and memory benchmarks to measure performance characteristics.
+
+**Quick Performance Highlights:**
+
+-   ⚡ **Ultra-fast**: Result creation takes only 3-5 nanoseconds
+-   💾 **Low allocation**: Each result allocates exactly 24 bytes
+-   ♻️ **Reuse benefits**: Reusing result instances reduces allocations by 3,666x (88KB → 24B)
+-   📦 **Collection-friendly**: Lists are 35% faster than arrays for storing results
+
+See the **[Benchmarks README](Teqniqly.Results.Benchmarks/README.md)** for detailed baseline results and information on:
+
+-   Running benchmarks
+-   Understanding results
+-   CPU performance measurements
+-   Memory allocation analysis
+-   Optimization opportunities
 
 ## Key Types
 
-- **`IResult<T>`**: The core interface representing an operation result
-- **`Error`**: Abstract base record for all error types
-- **`Result`**: Static factory class for creating success/failure results
-- **`Unit`**: A unit type for operations that don't return meaningful data
+-   **`IResult<T>`**: The core interface representing an operation result
+-   **`Error`**: Abstract base record for all error types
+-   **`Result`**: Static factory class for creating success/failure results
+-   **`Unit`**: A unit type for operations that don't return meaningful data
 
 ## Benefits
 
-- **Type Safety**: Errors are part of the return type, impossible to ignore
-- **Performance**: No exception overhead for expected failure cases
-- **Clarity**: Method signatures clearly indicate possible failure modes
-- **Composability**: Results work well with LINQ and functional programming patterns
-- **Testability**: Easy to test both success and failure scenarios
+-   **Type Safety**: Errors are part of the return type, impossible to ignore
+-   **Performance**: No exception overhead for expected failure cases
+-   **Clarity**: Method signatures clearly indicate possible failure modes
+-   **Composability**: Results work well with LINQ and functional programming patterns
+-   **Testability**: Easy to test both success and failure scenarios
 
 ## Design Principles
 
-- **Minimal API**: Simple, focused interface that's easy to learn
-- **Type Safe**: Leverages C#'s type system for correctness
-- **Performance Conscious**: No allocations in success paths for value types
-- **Extensible**: Easy to create custom error types for your domain
-- **Framework Agnostic**: Works with any .NET application, not tied to ASP.NET Core
+-   **Minimal API**: Simple, focused interface that's easy to learn
+-   **Type Safe**: Leverages C#'s type system for correctness
+-   **Performance Conscious**: No allocations in success paths for value types
+-   **Extensible**: Easy to create custom error types for your domain
+-   **Framework Agnostic**: Works with any .NET application, not tied to ASP.NET Core
 
 ## API Reference
 
