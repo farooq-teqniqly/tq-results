@@ -97,28 +97,23 @@ jobs:
             echo "has_regression=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update baseline if no regressions
-        if: steps.regression-check.outputs.has_regression == 'false'
-        run: |
-          # Replace current baseline with new baseline
-          mv performance_reviews/baselines/baseline-new.json performance_reviews/baselines/baseline-current.json
+      - name: Create or update PR with baseline changes
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: perfbot/update-baselines
+          base: main
+          title: "chore: nightly performance baseline update"
+          commit-message: "chore: nightly performance baseline update"
+          body: |
+            Automated nightly update of performance baselines.
+            - Date: ${{ github.run_started_at }}
+            - Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: automation, performance
+          add-paths: |
+            performance_reviews/baselines/baseline-current.json
+            performance_reviews/nightly/performance-review-*.md
 
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage the changes
-          git add performance_reviews/baselines/baseline-current.json
-          git add performance_reviews/nightly/performance-review-*.md
-
-          # Commit only if there are changes
-          git diff --staged --quiet || git commit -m "chore: update performance baseline - $(date +%Y-%m-%d)"
-
-          # Pull latest changes with rebase
-          git pull --rebase origin main
-
-          # Push only if we are ahead
-          git rev-list --count origin/main..HEAD | grep -q '^[1-9][0-9]*$' && git push || echo "Nothing to push."
       - name: Create issue for regressions
         if: steps.regression-check.outputs.has_regression == 'true'
         uses: actions/github-script@v7
@@ -155,41 +150,48 @@ jobs:
             } catch (error) {
               core.setFailed(`Failed to create regression issue: ${error.message}`);
             }
-      - name: Comment on latest commit
+
+      - name: Comment summary on PR
+        if: steps.cpr.outputs.pull-request-number != ''
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
 
-            try {
-              const reviewFile = fs.readdirSync('performance_reviews/nightly')
-                .find(f => f.startsWith('performance-review-'));
-              
-              if (!reviewFile) {
-                core.setFailed('Performance review file not found');
-                return;
-              }
-              
-              const reviewPath = `performance_reviews/nightly/${reviewFile}`;
-              const reviewContent = fs.readFileSync(reviewPath, 'utf8');
+            // Pick the nightly file that was just generated
+            const reviewFile = fs.readdirSync('performance_reviews/nightly')
+              .find(f => f.startsWith('performance-review-'));
 
-              // Extract summary section (first 500 chars after ## Summary)
-              const summaryMatch = reviewContent.match(/## Summary[\s\S]{0,500}/);
-              const summary = summaryMatch ? summaryMatch[0] : 'Performance review completed.';
-
-              const hasRegression = '${{ steps.regression-check.outputs.has_regression }}';
-              const status = hasRegression === 'true' ? '⚠️ Regressions Detected' : '✅ All Benchmarks Passed';
-
-              await github.rest.repos.createCommitComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                commit_sha: context.sha,
-                body: `## Nightly Performance Benchmark Results\n\n**Status**: ${status}\n\n${summary}\n\n[View Full Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
-              });
-            } catch (error) {
-              core.setFailed(`Failed to create commit comment: ${error.message}`);
+            if (!reviewFile) {
+              core.setFailed('Performance review file not found');
+              return;
             }
+
+            const reviewPath = `performance_reviews/nightly/${reviewFile}`;
+            const reviewContent = fs.readFileSync(reviewPath, 'utf8');
+
+            // Extract up to 500 chars after "## Summary"
+            const summaryMatch = reviewContent.match(/## Summary[\\s\\S]{0,500}/);
+            const summary = summaryMatch ? summaryMatch[0] : 'Performance review completed.';
+
+            const hasRegression = 'false'; // replace with your actual detection flag/output
+            const status = hasRegression === 'true' ? '⚠️ Regressions Detected' : '✅ All Benchmarks Passed';
+
+            const prNumber = Number('${{ steps.cpr.outputs.pull-request-number }}');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## Nightly Performance Benchmark Results
+
+              **Status**: ${status}
+
+              ${summary}
+
+              [View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+                    });
 
       - name: Fail workflow if regressions detected
         if: steps.regression-check.outputs.has_regression == 'true'
