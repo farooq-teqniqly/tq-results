@@ -414,17 +414,11 @@ def _build_conclusion_section(regressions_count: int, max_severity: str) -> str:
     return md
 
 
-def generate_review(
-    baseline: dict[str, BenchmarkResult],
-    current: dict[str, BenchmarkResult],
-    baseline_date: str,
-    commit: str,
-) -> tuple[str, bool, str]:
-    """Generate performance review markdown. Returns (content, has_regression, severity)."""
-
-    # Handle initial baseline scenario
-    if not baseline:
-        md = f"""# Performance Review Results - Initial Baseline
+def _generate_initial_baseline_review(
+    current: dict[str, BenchmarkResult], baseline_date: str, commit: str
+) -> str:
+    """Generate review markdown for initial baseline establishment."""
+    md = f"""# Performance Review Results - Initial Baseline
 
 **Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
 **Baseline**: {baseline_date}
@@ -442,34 +436,38 @@ This is the **initial benchmark run**. No baseline exists for comparison.
 The following benchmarks will serve as the baseline for future comparisons:
 
 """
-        # List all benchmarks
-        cpu_benchmarks = [
-            r for name, r in current.items() if not _is_memory_benchmark(r, name)
-        ]
-        memory_benchmarks = [
-            r for name, r in current.items() if _is_memory_benchmark(r, name)
-        ]
+    cpu_benchmarks = [
+        r for name, r in current.items() if not _is_memory_benchmark(r, name)
+    ]
+    memory_benchmarks = [
+        r for name, r in current.items() if _is_memory_benchmark(r, name)
+    ]
 
-        if cpu_benchmarks:
-            md += "\n### CPU Benchmarks\n\n"
-            for result in cpu_benchmarks:
-                md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes} B)\n"
+    if cpu_benchmarks:
+        md += "\n### CPU Benchmarks\n\n"
+        for result in cpu_benchmarks:
+            md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes} B)\n"
 
-        if memory_benchmarks:
-            md += "\n### Memory Benchmarks\n\n"
-            for result in memory_benchmarks:
-                md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes:,} B, Gen0/1/2: {result.gen0:.1f}/{result.gen1:.1f}/{result.gen2:.1f})\n"
+    if memory_benchmarks:
+        md += "\n### Memory Benchmarks\n\n"
+        for result in memory_benchmarks:
+            md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes:,} B, Gen0/1/2: {result.gen0:.1f}/{result.gen1:.1f}/{result.gen2:.1f})\n"
 
-        md += "\n## Next Steps\n\n"
-        md += "- [x] Initial baseline established\n"
-        md += "- [x] Future runs will compare against this baseline\n"
-        md += "- [x] Performance regressions will be automatically detected\n"
+    md += "\n## Next Steps\n\n"
+    md += "- [x] Initial baseline established\n"
+    md += "- [x] Future runs will compare against this baseline\n"
+    md += "- [x] Performance regressions will be automatically detected\n"
 
-        md += "\n## Conclusion\n\n"
-        md += "✅ **Initial baseline successfully established.** Future benchmark runs will compare against these values.\n"
+    md += "\n## Conclusion\n\n"
+    md += "✅ **Initial baseline successfully established.** Future benchmark runs will compare against these values.\n"
 
-        return md, False, "NONE"
+    return md
 
+
+def _compare_all_benchmarks(
+    baseline: dict[str, BenchmarkResult], current: dict[str, BenchmarkResult]
+) -> tuple[list, list, list, list, str]:
+    """Compare all benchmarks against baseline. Returns (cpu_comparisons, memory_comparisons, regressions, improvements, max_severity)."""
     cpu_comparisons = []
     memory_comparisons = []
     regressions = []
@@ -478,7 +476,6 @@ The following benchmarks will serve as the baseline for future comparisons:
 
     severity_rank = {"NONE": 0, "IMPROVEMENT": 0, "MINOR": 1, "MAJOR": 2, "CRITICAL": 3}
 
-    # Compare all benchmarks
     for name, current_result in current.items():
         if name not in baseline:
             continue
@@ -510,6 +507,27 @@ The following benchmarks will serve as the baseline for future comparisons:
                 max_severity = severity
         elif severity == "IMPROVEMENT":
             improvements.append((name, baseline_result, current_result, change_pct))
+
+    return cpu_comparisons, memory_comparisons, regressions, improvements, max_severity
+
+
+def generate_review(
+    baseline: dict[str, BenchmarkResult],
+    current: dict[str, BenchmarkResult],
+    baseline_date: str,
+    commit: str,
+) -> tuple[str, bool, str]:
+    """Generate performance review markdown. Returns (content, has_regression, severity)."""
+
+    # Handle initial baseline scenario
+    if not baseline:
+        md = _generate_initial_baseline_review(current, baseline_date, commit)
+        return md, False, "NONE"
+
+    # Compare benchmarks
+    cpu_comparisons, memory_comparisons, regressions, improvements, max_severity = (
+        _compare_all_benchmarks(baseline, current)
+    )
 
     # Build markdown document
     md = _build_summary_section(
