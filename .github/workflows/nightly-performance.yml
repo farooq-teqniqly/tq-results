@@ -57,7 +57,7 @@ jobs:
 
       - name: Compare against baseline
         id: compare
-        continue-on-error: false
+        continue-on-error: true
         run: |
           python .github/scripts/compare-benchmarks.py \
             --baseline performance_reviews/baselines/baseline-current.json \
@@ -66,8 +66,12 @@ jobs:
             --output performance_reviews/nightly/performance-review-$(date +%Y-%m-%d).md \
             --new-baseline performance_reviews/baselines/baseline-new.json
 
-          if [ $? -ne 0 ] && [ $? -ne 1 ]; then
-            echo "Error: Comparison script failed with unexpected error"
+          exit_code=$?
+          echo "comparison_exit_code=$exit_code" >> $GITHUB_OUTPUT
+
+          # Exit codes: 0 = no regressions, 1 = regressions found, >1 = error
+          if [ $exit_code -gt 1 ]; then
+            echo "Error: Comparison script failed with unexpected error (exit code: $exit_code)"
             exit 1
           fi
       - name: Upload performance review
@@ -170,3 +174,11 @@ jobs:
             } catch (error) {
               core.setFailed(`Failed to create commit comment: ${error.message}`);
             }
+
+      - name: Fail workflow if regressions detected
+        if: steps.regression-check.outputs.has_regression == 'true'
+        run: |
+          echo "⚠️ Performance regressions detected!"
+          echo "Severity: ${{ steps.regression-check.outputs.severity }}"
+          echo "Review the generated performance review file and GitHub issue for details."
+          exit 1
