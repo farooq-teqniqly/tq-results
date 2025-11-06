@@ -144,21 +144,32 @@ jobs:
               with:
                   script: |
                       const fs = require('fs');
-                      const reviewFile = fs.readdirSync('performance_reviews/nightly')
-                        .find(f => f.startsWith('performance-review-'));
-                      const reviewPath = `performance_reviews/nightly/${reviewFile}`;
-                      const reviewContent = fs.readFileSync(reviewPath, 'utf8');
+                      
+                      try {
+                        const reviewFile = fs.readdirSync('performance_reviews/nightly')
+                          .find(f => f.startsWith('performance-review-'));
+                        
+                        if (!reviewFile) {
+                          core.setFailed('Performance review file not found');
+                          return;
+                        }
+                        
+                        const reviewPath = `performance_reviews/nightly/${reviewFile}`;
+                        const reviewContent = fs.readFileSync(reviewPath, 'utf8');
 
-                      // Extract summary section (first 500 chars after ## Summary)
-                      const summaryMatch = reviewContent.match(/## Summary[\s\S]{0,500}/);
-                      const summary = summaryMatch ? summaryMatch[0] : 'Performance review completed.';
+                        // Extract summary section (first 500 chars after ## Summary)
+                        const summaryMatch = reviewContent.match(/## Summary[\s\S]{0,500}/);
+                        const summary = summaryMatch ? summaryMatch[0] : 'Performance review completed.';
 
-                      const hasRegression = '${{ steps.regression-check.outputs.has_regression }}';
-                      const status = hasRegression === 'true' ? '⚠️ Regressions Detected' : '✅ All Benchmarks Passed';
+                        const hasRegression = '${{ steps.regression-check.outputs.has_regression }}';
+                        const status = hasRegression === 'true' ? '⚠️ Regressions Detected' : '✅ All Benchmarks Passed';
 
-                      await github.rest.repos.createCommitComment({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        commit_sha: context.sha,
-                        body: `## Nightly Performance Benchmark Results\n\n**Status**: ${status}\n\n${summary}\n\n[View Full Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
-                      });
+                        await github.rest.repos.createCommitComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          commit_sha: context.sha,
+                          body: `## Nightly Performance Benchmark Results\n\n**Status**: ${status}\n\n${summary}\n\n[View Full Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+                        });
+                      } catch (error) {
+                        core.setFailed(`Failed to create commit comment: ${error.message}`);
+                      }
