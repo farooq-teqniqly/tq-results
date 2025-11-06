@@ -97,12 +97,18 @@ jobs:
           # Replace current baseline with new baseline
           mv performance_reviews/baselines/baseline-new.json performance_reviews/baselines/baseline-current.json
 
-          # Commit the updated baseline
+          # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
+
+          # Stage the changes
           git add performance_reviews/baselines/baseline-current.json
           git add performance_reviews/nightly/performance-review-*.md
+
+          # Pull latest changes with rebase
+          git pull --rebase origin main
+
+          # Commit and push
           git commit -m "chore: update performance baseline - $(date +%Y-%m-%d)"
           git push
       - name: Create issue for regressions
