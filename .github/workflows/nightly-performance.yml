@@ -97,6 +97,12 @@ jobs:
             echo "has_regression=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Update baseline if no regressions
+        if: steps.regression-check.outputs.has_regression == 'false'
+        run: |
+          # Move new baseline to current baseline
+          mv performance_reviews/baselines/baseline-new.json performance_reviews/baselines/baseline-current.json
+
       - name: Create or update PR with baseline changes
         id: cpr
         uses: peter-evans/create-pull-request@v6
