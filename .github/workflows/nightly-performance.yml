@@ -3,6 +3,9 @@ name: Nightly Performance Benchmarks
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  issues: write
 jobs:
   run-benchmarks:
     name: Run Performance Benchmarks
@@ -43,6 +46,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Download benchmark results
         uses: actions/download-artifact@v4
@@ -111,12 +117,13 @@ jobs:
           # Pull latest changes with rebase
           git pull --rebase origin main
 
-          # Push only if we’re ahead
+          # Push only if we are ahead
           git rev-list --count origin/main..HEAD | grep -q '^[1-9][0-9]*$' && git push || echo "Nothing to push."
       - name: Create issue for regressions
         if: steps.regression-check.outputs.has_regression == 'true'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
 
@@ -151,6 +158,7 @@ jobs:
       - name: Comment on latest commit
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
 
