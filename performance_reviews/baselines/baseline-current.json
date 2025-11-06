@@ -1,0 +1,200 @@
+{
+  "date": "2025-11-06T23:58:41.367009",
+  "commit": "",
+  "runtime": ".NET 9.0",
+  "cpu_benchmarks": [
+    {
+      "name": "CreateSuccessResult_String",
+      "mean_ns": 8.4,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CreateSuccessResult_Int",
+      "mean_ns": 19.009,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CreateSuccessResult_Unit",
+      "mean_ns": 15.868,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CreateFailureResult_String",
+      "mean_ns": 9.046,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CreateFailureResult_Int",
+      "mean_ns": 8.987,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CreateFailureResult_Unit",
+      "mean_ns": 8.917,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "GetValue_Success",
+      "mean_ns": 9.637,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "GetError_Failure",
+      "mean_ns": 8.162,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CheckIsSuccess_OnSuccessResult",
+      "mean_ns": 8.612,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CheckIsFailure_OnFailureResult",
+      "mean_ns": 6.685,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CompleteSuccessWorkflow",
+      "mean_ns": 13.593,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "CompleteFailureWorkflow",
+      "mean_ns": 8.78,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    },
+    {
+      "name": "ReuseSuccessResult",
+      "mean_ns": 8115.64,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24
+    }
+  ],
+  "memory_benchmarks": [
+    {
+      "name": "CreateAndStoreResultsInArray",
+      "mean_ns": 52711.86,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 84024,
+      "gen0": 0.0,
+      "gen1": 5.0049,
+      "gen2": 1.2207
+    },
+    {
+      "name": "CreateAndStoreResultsInList",
+      "mean_ns": 33990.35,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 64056,
+      "gen0": 0.0,
+      "gen1": 3.7842,
+      "gen2": 0.7324
+    },
+    {
+      "name": "ReuseErrorInstance",
+      "mean_ns": 14003.36,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 24024,
+      "gen0": 0.0,
+      "gen1": 1.4343,
+      "gen2": 0.1221
+    },
+    {
+      "name": "CreateNewErrorInstances",
+      "mean_ns": 55585.9,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 88000,
+      "gen0": 0.0,
+      "gen1": 5.249,
+      "gen2": 1.709
+    },
+    {
+      "name": "CreateNewValueInstances",
+      "mean_ns": 50380.12,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 64000,
+      "gen0": 0.0,
+      "gen1": 3.7842,
+      "gen2": 0.7324
+    },
+    {
+      "name": "ChainedResultProcessing",
+      "mean_ns": 193.94,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 376,
+      "gen0": 0.0,
+      "gen1": 0.0224,
+      "gen2": 0.0
+    },
+    {
+      "name": "NestedResults",
+      "mean_ns": 13.95,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 48,
+      "gen0": 0.0,
+      "gen1": 0.0029,
+      "gen2": 0.0
+    },
+    {
+      "name": "ResultWithLargeValue",
+      "mean_ns": 344.98,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 10048,
+      "gen0": 0.0,
+      "gen1": 0.6013,
+      "gen2": 0.0
+    },
+    {
+      "name": "FilterResults",
+      "mean_ns": 46425.94,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 86024,
+      "gen0": 0.0,
+      "gen1": 5.127,
+      "gen2": 0.9766
+    },
+    {
+      "name": "ResultsInDictionary",
+      "mean_ns": 98057.8,
+      "error_ns": 0,
+      "stddev_ns": 0,
+      "allocated_bytes": 198136,
+      "gen0": 0.0,
+      "gen1": 11.7188,
+      "gen2": 5.7373
+    }
+  ]
+}
