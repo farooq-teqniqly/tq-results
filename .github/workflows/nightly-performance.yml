@@ -105,6 +105,9 @@ jobs:
           git add performance_reviews/baselines/baseline-current.json
           git add performance_reviews/nightly/performance-review-*.md
 
+          # Commit only if there are changes
+          git diff --staged --quiet || git commit -m "chore: update performance baseline - $(date +%Y-%m-%d)"
+
           # Pull latest changes with rebase
           git pull --rebase origin main
 

@@ -193,10 +193,18 @@ def parse_markdown_table(content: str) -> list[BenchmarkResult]:
     return results
 
 
-def load_baseline(path: str) -> dict[str, BenchmarkResult]:
-    """Load baseline from JSON file."""
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
+    """Load baseline from JSON file. Returns (results, baseline_date)."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        # No baseline exists - this is the first run
+        print(
+            f"No baseline found at {path}. This will be the initial baseline.",
+            file=sys.stderr,
+        )
+        return {}, "Initial Run"
 
     results = {}
 
@@ -219,7 +227,8 @@ def load_baseline(path: str) -> dict[str, BenchmarkResult]:
             gen2=bench.get("gen2", 0),
         )
 
-    return results
+    baseline_date = data.get("date", "unknown")
+    return results, baseline_date
 
 
 def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = ""):
@@ -413,6 +422,54 @@ def generate_review(
 ) -> tuple[str, bool, str]:
     """Generate performance review markdown. Returns (content, has_regression, severity)."""
 
+    # Handle initial baseline scenario
+    if not baseline:
+        md = f"""# Performance Review Results - Initial Baseline
+
+**Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Baseline**: {baseline_date}
+**Commit**: {commit}
+
+## Summary
+
+This is the **initial benchmark run**. No baseline exists for comparison.
+
+- **Total Benchmarks**: {len(current)}
+- **Status**: ✅ INITIAL BASELINE ESTABLISHED
+
+## Benchmarks Recorded
+
+The following benchmarks will serve as the baseline for future comparisons:
+
+"""
+        # List all benchmarks
+        cpu_benchmarks = [
+            r for name, r in current.items() if not _is_memory_benchmark(r, name)
+        ]
+        memory_benchmarks = [
+            r for name, r in current.items() if _is_memory_benchmark(r, name)
+        ]
+
+        if cpu_benchmarks:
+            md += "\n### CPU Benchmarks\n\n"
+            for result in cpu_benchmarks:
+                md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes} B)\n"
+
+        if memory_benchmarks:
+            md += "\n### Memory Benchmarks\n\n"
+            for result in memory_benchmarks:
+                md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes:,} B, Gen0/1/2: {result.gen0:.1f}/{result.gen1:.1f}/{result.gen2:.1f})\n"
+
+        md += "\n## Next Steps\n\n"
+        md += "- [x] Initial baseline established\n"
+        md += "- [x] Future runs will compare against this baseline\n"
+        md += "- [x] Performance regressions will be automatically detected\n"
+
+        md += "\n## Conclusion\n\n"
+        md += "✅ **Initial baseline successfully established.** Future benchmark runs will compare against these values.\n"
+
+        return md, False, "NONE"
+
     cpu_comparisons = []
     memory_comparisons = []
     regressions = []
@@ -495,13 +552,8 @@ def main():
 
     args = parser.parse_args()
 
-    # Load baseline
-    baseline_results = load_baseline(args.baseline)
-
-    # Load baseline metadata
-    with open(args.baseline, "r", encoding="utf-8") as f:
-        baseline_data = json.load(f)
-    baseline_date = baseline_data.get("date", "unknown")
+    # Load baseline (returns tuple of results and date)
+    baseline_results, baseline_date = load_baseline(args.baseline)
 
     # Parse current results
     current_results = {}
