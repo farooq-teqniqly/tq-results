@@ -12,6 +12,45 @@ tags: ["performance-review", "benchmarks", "workflow"]
 
 After implementing changes that may affect performance, conduct a performance review to detect regressions and track improvements.
 
+Performance reviews can be conducted:
+
+-   **Manually**: By running benchmarks locally and generating review documents
+-   **Automatically**: Via the nightly automated workflow that runs on the main branch
+
+## Automated Nightly Performance Workflow
+
+The repository includes an automated nightly performance workflow (`.github/workflows/nightly-performance.yml`) that:
+
+1. **Runs at 2:00 AM UTC** on the main branch
+2. **Executes the full benchmark suite** in Release configuration
+3. **Compares results** against the current baseline
+4. **Generates review documents** automatically
+5. **Creates GitHub issues** if regressions are detected
+
+### Files Created by Nightly Workflow
+
+The automated workflow creates/updates the following files:
+
+#### Performance Review Reports
+
+-   **Location**: `performance_reviews/nightly/`
+-   **Naming**: `performance-review-YYYY-MM-DD.md`
+-   **Purpose**: Daily performance review with comparison tables and regression analysis
+-   **Retention**: Kept indefinitely for historical trend tracking
+
+#### Baseline Updates (No Regressions)
+
+-   **Location**: `performance_reviews/baselines/baseline-current.json`
+-   **Purpose**: Current approved baseline for all benchmarks
+-   **Update**: Automatically updated when no regressions are detected
+-   **Commit**: Auto-committed with message `chore: update performance baseline - YYYY-MM-DD`
+
+#### GitHub Issues (Regressions Detected)
+
+-   **Labels**: `performance-regression`, `severity-{critical|major|minor}`
+-   **Content**: Full performance review with regression details
+-   **Purpose**: Track and manage performance regressions
+
 ## When to Conduct Performance Reviews
 
 Perform performance reviews:
