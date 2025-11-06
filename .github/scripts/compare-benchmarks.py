@@ -195,7 +195,7 @@ def parse_markdown_table(content: str) -> list[BenchmarkResult]:
 
 def load_baseline(path: str) -> dict[str, BenchmarkResult]:
     """Load baseline from JSON file."""
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     results = {}
@@ -254,7 +254,7 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
     }
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(baseline, f, indent=2)
 
 
@@ -499,19 +499,19 @@ def main():
     baseline_results = load_baseline(args.baseline)
 
     # Load baseline metadata
-    with open(args.baseline, "r") as f:
+    with open(args.baseline, "r", encoding="utf-8") as f:
         baseline_data = json.load(f)
     baseline_date = baseline_data.get("date", "unknown")
 
     # Parse current results
     current_results = {}
 
-    with open(args.cpu_results, "r") as f:
+    with open(args.cpu_results, "r", encoding="utf-8") as f:
         cpu_content = f.read()
         for result in parse_markdown_table(cpu_content):
             current_results[result.name] = result
 
-    with open(args.memory_results, "r") as f:
+    with open(args.memory_results, "r", encoding="utf-8") as f:
         memory_content = f.read()
         for result in parse_markdown_table(memory_content):
             current_results[result.name] = result
@@ -523,7 +523,7 @@ def main():
 
     # Write review
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-    with open(args.output, "w") as f:
+    with open(args.output, "w", encoding="utf-8") as f:
         f.write(review_md)
 
     # Save new baseline (always save, workflow decides whether to use it)
@@ -531,9 +531,9 @@ def main():
 
     # Create marker files for workflow
     if has_regression:
-        with open(".regression-detected", "w") as f:
+        with open(".regression-detected", "w", encoding="utf-8") as f:
             f.write("true")
-        with open(".regression-severity", "w") as f:
+        with open(".regression-severity", "w", encoding="utf-8") as f:
             f.write(severity)
 
     print(f"Performance review generated: {args.output}")

@@ -95,9 +95,9 @@
             "error_ns": 2366.683,
             "stddev_ns": 1237.821,
             "allocated_bytes": 840240,
-            "gen0": 79.956,
-            "gen1": 19.531,
-            "gen2": 0
+            "gen0": 799.56,
+            "gen1": 195.31,
+            "gen2": 10
         },
         {
             "name": "CreateAndStoreResultsInList",
@@ -105,9 +105,9 @@
             "error_ns": 1173.208,
             "stddev_ns": 776.005,
             "allocated_bytes": 640560,
-            "gen0": 61.035,
-            "gen1": 11.902,
-            "gen2": 0
+            "gen0": 610.35,
+            "gen1": 119.02,
+            "gen2": 10
         },
         {
             "name": "ReuseSuccessResult",
@@ -117,7 +117,7 @@
             "allocated_bytes": 240,
             "gen0": 0,
             "gen1": 0,
-            "gen2": 0
+            "gen2": 10
         },
         {
             "name": "ReuseErrorInstance",
@@ -125,9 +125,9 @@
             "error_ns": 966.579,
             "stddev_ns": 575.196,
             "allocated_bytes": 240240,
-            "gen0": 22.888,
-            "gen1": 1.984,
-            "gen2": 0
+            "gen0": 228.88,
+            "gen1": 19.84,
+            "gen2": 10
         },
         {
             "name": "CreateNewErrorInstances",
@@ -135,9 +135,9 @@
             "error_ns": 6794.639,
             "stddev_ns": 4494.233,
             "allocated_bytes": 880000,
-            "gen0": 83.618,
-            "gen1": 27.466,
-            "gen2": 0
+            "gen0": 836.18,
+            "gen1": 274.66,
+            "gen2": 10
         },
         {
             "name": "CreateNewValueInstances",
@@ -145,9 +145,9 @@
             "error_ns": 2768.051,
             "stddev_ns": 1830.895,
             "allocated_bytes": 640000,
-            "gen0": 61.035,
-            "gen1": 11.597,
-            "gen2": 0
+            "gen0": 610.35,
+            "gen1": 115.97,
+            "gen2": 10
         },
         {
             "name": "ChainedResultProcessing",
@@ -155,9 +155,9 @@
             "error_ns": 16.364,
             "stddev_ns": 10.823,
             "allocated_bytes": 3760,
-            "gen0": 0.358,
+            "gen0": 3.58,
             "gen1": 0,
-            "gen2": 0
+            "gen2": 10
         },
         {
             "name": "NestedResults",
@@ -165,9 +165,9 @@
             "error_ns": 2.366,
             "stddev_ns": 1.565,
             "allocated_bytes": 480,
-            "gen0": 0.046,
+            "gen0": 0.46,
             "gen1": 0,
-            "gen2": 0
+            "gen2": 10
         },
         {
             "name": "ResultWithLargeValue",
@@ -175,9 +175,9 @@
             "error_ns": 317.851,
             "stddev_ns": 210.239,
             "allocated_bytes": 100480,
-            "gen0": 9.613,
+            "gen0": 96.13,
             "gen1": 0,
-            "gen2": 0
+            "gen2": 10
         },
         {
             "name": "FilterResults",
@@ -185,9 +185,9 @@
             "error_ns": 14314.501,
             "stddev_ns": 9468.156,
             "allocated_bytes": 860240,
-            "gen0": 81.787,
-            "gen1": 20.142,
-            "gen2": 0
+            "gen0": 817.87,
+            "gen1": 201.42,
+            "gen2": 10
         },
         {
             "name": "ResultsInDictionary",
@@ -195,9 +195,9 @@
             "error_ns": 18251.418,
             "stddev_ns": 12072.183,
             "allocated_bytes": 1981360,
-            "gen0": 187.988,
-            "gen1": 92.773,
-            "gen2": 0
+            "gen0": 1879.88,
+            "gen1": 927.73,
+            "gen2": 10
         }
     ]
 }
