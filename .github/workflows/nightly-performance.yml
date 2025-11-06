@@ -111,7 +111,7 @@ jobs:
           # Pull latest changes with rebase
           git pull --rebase origin main
 
-          # Push only if we’re ahead
+          # Push only if we are ahead
           git rev-list --count origin/main..HEAD | grep -q '^[1-9][0-9]*$' && git push || echo "Nothing to push."
       - name: Create issue for regressions
         if: steps.regression-check.outputs.has_regression == 'true'
