@@ -4,7 +4,7 @@ This directory contains performance benchmarking data and reviews for the Teqniq
 
 ## Directory Structure
 
-```
+```text
 performance_reviews/
 ├── baselines/
 │   └── baseline-current.json      # Current performance baseline
