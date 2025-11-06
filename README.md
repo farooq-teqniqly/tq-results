@@ -164,7 +164,16 @@ The tests cover:
 
 ## Performance Benchmarks
 
-The library includes comprehensive CPU and memory benchmarks to measure performance characteristics. See the **[Benchmarks README](Teqniqly.Results.Benchmarks/README.md)** for detailed information on:
+The library includes comprehensive CPU and memory benchmarks to measure performance characteristics.
+
+**Quick Performance Highlights:**
+
+-   ⚡ **Ultra-fast**: Result creation takes only 3-5 nanoseconds
+-   💾 **Low allocation**: Each result allocates exactly 24 bytes
+-   ♻️ **Reuse benefits**: Reusing result instances reduces allocations by 3,666x (88KB → 24B)
+-   📦 **Collection-friendly**: Lists are 35% faster than arrays for storing results
+
+See the **[Benchmarks README](Teqniqly.Results.Benchmarks/README.md)** for detailed baseline results and information on:
 
 -   Running benchmarks
 -   Understanding results
