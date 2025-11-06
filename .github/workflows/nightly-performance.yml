@@ -1,10 +1,6 @@
 name: Nightly Performance Benchmarks
 
 on:
-  schedule:
-    # Run nightly at 2:00 AM UTC
-    - cron: "0 2 * * *"
-
   workflow_dispatch:
 
 jobs:
