@@ -93,18 +93,86 @@ class RegressionDetector:
             return "⚠️", change_pct, "MINOR"
 
 
+def _find_table_start(lines: List[str]) -> int:
+    """Find the starting line of the markdown table."""
+    for i, line in enumerate(lines):
+        if "|" in line and "Method" in line:
+            return i
+    return -1
+
+
+def _parse_mean_value(mean_str: str) -> float:
+    """Parse mean time value and convert to nanoseconds."""
+    cleaned = mean_str.replace(",", "").replace(" ns", "").replace(" us", "")
+    mean_ns = float(cleaned)
+
+    # Convert microseconds to nanoseconds if needed
+    if "us" in mean_str or "μs" in mean_str:
+        mean_ns *= 1000
+
+    return mean_ns
+
+
+def _parse_allocated_bytes(parts: List[str]) -> int:
+    """Parse allocated bytes from table parts."""
+    for part in parts:
+        if "B" in part and part[0].isdigit():
+            return int(part.replace(",", "").replace(" B", ""))
+    return 0
+
+
+def _parse_gen_columns(parts: List[str]) -> Tuple[float, float, float]:
+    """Parse Gen0/Gen1/Gen2 columns from table parts."""
+    gen0 = gen1 = gen2 = 0.0
+
+    if len(parts) <= 4:
+        return gen0, gen1, gen2
+
+    try:
+        for i, part in enumerate(parts):
+            if part.replace(".", "").replace("-", "").isdigit() or part == "-":
+                val = 0.0 if part == "-" else float(part)
+                if i == len(parts) - 4:  # Gen0
+                    gen0 = val
+                elif i == len(parts) - 3:  # Gen1
+                    gen1 = val
+                elif i == len(parts) - 2:  # Gen2 (before Allocated)
+                    gen2 = val
+    except (ValueError, IndexError):
+        pass
+
+    return gen0, gen1, gen2
+
+
+def _parse_table_row(parts: List[str]) -> Optional[BenchmarkResult]:
+    """Parse a single table row into a BenchmarkResult."""
+    if len(parts) < 2:
+        return None
+
+    try:
+        name = parts[0]
+        mean_ns = _parse_mean_value(parts[1])
+        allocated = _parse_allocated_bytes(parts)
+        gen0, gen1, gen2 = _parse_gen_columns(parts)
+
+        return BenchmarkResult(
+            name=name,
+            mean_ns=mean_ns,
+            allocated_bytes=allocated,
+            gen0=gen0,
+            gen1=gen1,
+            gen2=gen2,
+        )
+    except (ValueError, IndexError):
+        return None
+
+
 def parse_markdown_table(content: str) -> List[BenchmarkResult]:
     """Parse BenchmarkDotNet markdown table into benchmark results."""
     results = []
     lines = content.split("\n")
 
-    # Find the table
-    table_start = -1
-    for i, line in enumerate(lines):
-        if "|" in line and "Method" in line:
-            table_start = i
-            break
-
+    table_start = _find_table_start(lines)
     if table_start == -1:
         return results
 
@@ -116,61 +184,12 @@ def parse_markdown_table(content: str) -> List[BenchmarkResult]:
             break
 
         parts = [p.strip() for p in line.split("|")][1:-1]  # Remove empty first/last
+        result = _parse_table_row(parts)
 
-        if len(parts) < 2:
-            continue
-
-        try:
-            name = parts[0]
-
-            # Parse mean (e.g., "3.354 ns" or "35,199.262 ns")
-            mean_str = parts[1].replace(",", "").replace(" ns", "").replace(" us", "")
-            mean_ns = float(mean_str)
-
-            # Convert microseconds to nanoseconds if needed
-            if "us" in parts[1] or "μs" in parts[1]:
-                mean_ns *= 1000
-
-            # Parse allocated (if present)
-            allocated = 0
-            gen0 = gen1 = gen2 = 0
-
-            for part in parts:
-                if "B" in part and part[0].isdigit():
-                    allocated = int(part.replace(",", "").replace(" B", ""))
-
-            # Try to find Gen0/Gen1/Gen2 columns
-            if len(parts) > 4:
-                try:
-                    # Check if we have Gen columns
-                    for i, part in enumerate(parts):
-                        if (
-                            part.replace(".", "").replace("-", "").isdigit()
-                            or part == "-"
-                        ):
-                            val = 0 if part == "-" else float(part)
-                            if i == len(parts) - 4:  # Gen0
-                                gen0 = val
-                            elif i == len(parts) - 3:  # Gen1
-                                gen1 = val
-                            elif i == len(parts) - 2:  # Gen2 (before Allocated)
-                                gen2 = val
-                except:
-                    pass
-
-            results.append(
-                BenchmarkResult(
-                    name=name,
-                    mean_ns=mean_ns,
-                    allocated_bytes=allocated,
-                    gen0=gen0,
-                    gen1=gen1,
-                    gen2=gen2,
-                )
-            )
-        except (ValueError, IndexError) as e:
+        if result:
+            results.append(result)
+        else:
             print(f"Warning: Could not parse line: {line.strip()}", file=sys.stderr)
-            continue
 
     return results
 
@@ -240,6 +259,147 @@ def save_baseline(results: Dict[str, BenchmarkResult], path: str, commit: str = 
         json.dump(baseline, f, indent=2)
 
 
+def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
+    """Determine if a benchmark is a memory benchmark."""
+    return result.gen0 > 0 or "Memory" in name or result.mean_ns > 100
+
+
+def _compare_benchmark(
+    name: str,
+    baseline_result: BenchmarkResult,
+    current_result: BenchmarkResult,
+) -> Tuple[str, float, str, bool]:
+    """Compare a single benchmark. Returns (status, change_pct, severity, is_memory)."""
+    is_memory = _is_memory_benchmark(current_result, name)
+
+    if is_memory:
+        status, change_pct, severity = RegressionDetector.compare_memory(
+            baseline_result, current_result
+        )
+    else:
+        status, change_pct, severity = RegressionDetector.compare_cpu(
+            baseline_result, current_result
+        )
+
+    return status, change_pct, severity, is_memory
+
+
+def _build_summary_section(
+    baseline_date: str,
+    commit: str,
+    total: int,
+    regressions_count: int,
+    improvements_count: int,
+    max_severity: str,
+) -> str:
+    """Build the summary section of the review."""
+    status = (
+        "✅ PASS" if regressions_count == 0 else f"⚠️ REGRESSIONS FOUND ({max_severity})"
+    )
+
+    return f"""# Performance Review Results
+
+**Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+**Baseline**: {baseline_date}
+**Commit**: {commit}
+
+## Summary
+
+- **Total Benchmarks**: {total}
+- **Regressions**: {regressions_count}
+- **Improvements**: {improvements_count}
+- **Status**: {status}
+
+"""
+
+
+def _build_cpu_benchmarks_table(cpu_comparisons: List) -> str:
+    """Build the CPU benchmarks comparison table."""
+    md = """## CPU Benchmarks
+
+| Benchmark | Baseline | Current | Change | Status |
+|-----------|----------|---------|--------|--------|
+"""
+
+    for name, baseline_r, current_r, status, change, severity in cpu_comparisons:
+        sign = "+" if change > 0 else ""
+        severity_text = severity if severity not in ["NONE", "IMPROVEMENT"] else ""
+        md += f"| {name} | {baseline_r.mean_ns:.3f} ns | {current_r.mean_ns:.3f} ns | {sign}{change:.1f}% | {status} {severity_text} |\n"
+
+    return md
+
+
+def _build_memory_benchmarks_table(memory_comparisons: List) -> str:
+    """Build the memory benchmarks comparison table."""
+    md = """\n## Memory Benchmarks
+
+| Benchmark | Baseline | Current | Alloc Change | Gen0/1/2 | Status |
+|-----------|----------|---------|--------------|----------|--------|
+"""
+
+    for name, baseline_r, current_r, status, change, severity in memory_comparisons:
+        sign = "+" if change > 0 else ""
+        gen_info = f"{current_r.gen0:.1f}/{current_r.gen1:.1f}/{current_r.gen2:.1f}"
+        severity_text = severity if severity not in ["NONE", "IMPROVEMENT"] else ""
+        md += f"| {name} | {baseline_r.allocated_bytes:,} B | {current_r.allocated_bytes:,} B | {sign}{change:.1f}% | {gen_info} | {status} {severity_text} |\n"
+
+    return md
+
+
+def _build_regressions_section(regressions: List) -> str:
+    """Build the regressions detail section."""
+    if not regressions:
+        return ""
+
+    md = "\n## Regressions\n\n"
+
+    for name, baseline_r, current_r, change, severity in regressions:
+        recommendation = (
+            "Fix before merge"
+            if severity == "CRITICAL"
+            else "Monitor" if severity == "MINOR" else "Investigate"
+        )
+
+        md += f"""### {name} - {severity}
+
+- **Baseline**: {baseline_r.mean_ns:.3f} ns ({baseline_r.allocated_bytes:,} B allocated)
+- **Current**: {current_r.mean_ns:.3f} ns ({current_r.allocated_bytes:,} B allocated)
+- **Change**: +{change:.1f}%
+- **Recommendation**: {recommendation}
+
+"""
+
+    return md
+
+
+def _build_action_items_section(has_regressions: bool) -> str:
+    """Build the action items section."""
+    md = "\n## Action Items\n\n"
+
+    if has_regressions:
+        md += "- [ ] Review regression details above\n"
+        md += "- [ ] Investigate root cause of performance degradation\n"
+        md += "- [ ] Fix regression or document justification\n"
+    else:
+        md += "- [x] No regressions detected\n"
+        md += "- [x] Baseline will be automatically updated\n"
+
+    return md
+
+
+def _build_conclusion_section(regressions_count: int, max_severity: str) -> str:
+    """Build the conclusion section."""
+    md = "\n## Conclusion\n\n"
+
+    if regressions_count > 0:
+        md += f"⚠️ **{regressions_count} regression(s) detected with {max_severity} severity.** "
+        md += "Please review and address before baseline is updated.\n"
+    else:
+        md += "✅ **All benchmarks passed.** Performance is within acceptable range of baseline.\n"
+
+    return md
+
+
 def generate_review(
     baseline: Dict[str, BenchmarkResult],
     current: Dict[str, BenchmarkResult],
@@ -262,26 +422,23 @@ def generate_review(
             continue
 
         baseline_result = baseline[name]
+        status, change_pct, severity, is_memory = _compare_benchmark(
+            name, baseline_result, current_result
+        )
 
-        # Determine if CPU or Memory benchmark
-        is_memory = (
-            current_result.gen0 > 0 or "Memory" in name or current_result.mean_ns > 100
+        comparison = (
+            name,
+            baseline_result,
+            current_result,
+            status,
+            change_pct,
+            severity,
         )
 
         if is_memory:
-            status, change_pct, severity = RegressionDetector.compare_memory(
-                baseline_result, current_result
-            )
-            memory_comparisons.append(
-                (name, baseline_result, current_result, status, change_pct, severity)
-            )
+            memory_comparisons.append(comparison)
         else:
-            status, change_pct, severity = RegressionDetector.compare_cpu(
-                baseline_result, current_result
-            )
-            cpu_comparisons.append(
-                (name, baseline_result, current_result, status, change_pct, severity)
-            )
+            cpu_comparisons.append(comparison)
 
         if severity in ["MINOR", "MAJOR", "CRITICAL"]:
             regressions.append(
@@ -292,63 +449,20 @@ def generate_review(
         elif severity == "IMPROVEMENT":
             improvements.append((name, baseline_result, current_result, change_pct))
 
-    # Generate markdown
-    md = f"""# Performance Review Results
-
-**Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
-**Baseline**: {baseline_date}
-**Commit**: {commit}
-
-## Summary
-
-- **Total Benchmarks**: {len(current)}
-- **Regressions**: {len(regressions)}
-- **Improvements**: {len(improvements)}
-- **Status**: {"✅ PASS" if len(regressions) == 0 else f"⚠️ REGRESSIONS FOUND ({max_severity})"}
-
-## CPU Benchmarks
-
-| Benchmark | Baseline | Current | Change | Status |
-|-----------|----------|---------|--------|--------|
-"""
-
-    for name, baseline_r, current_r, status, change, severity in cpu_comparisons:
-        sign = "+" if change > 0 else ""
-        md += f"| {name} | {baseline_r.mean_ns:.3f} ns | {current_r.mean_ns:.3f} ns | {sign}{change:.1f}% | {status} {severity if severity != 'NONE' and severity != 'IMPROVEMENT' else ''} |\n"
-
-    md += "\n## Memory Benchmarks\n\n"
-    md += "| Benchmark | Baseline | Current | Alloc Change | Gen0/1/2 | Status |\n"
-    md += "|-----------|----------|---------|--------------|----------|--------|\n"
-
-    for name, baseline_r, current_r, status, change, severity in memory_comparisons:
-        sign = "+" if change > 0 else ""
-        gen_info = f"{current_r.gen0:.1f}/{current_r.gen1:.1f}/{current_r.gen2:.1f}"
-        md += f"| {name} | {baseline_r.allocated_bytes:,} B | {current_r.allocated_bytes:,} B | {sign}{change:.1f}% | {gen_info} | {status} {severity if severity != 'NONE' and severity != 'IMPROVEMENT' else ''} |\n"
-
-    if regressions:
-        md += "\n## Regressions\n\n"
-        for name, baseline_r, current_r, change, severity in regressions:
-            md += f"### {name} - {severity}\n\n"
-            md += f"- **Baseline**: {baseline_r.mean_ns:.3f} ns ({baseline_r.allocated_bytes:,} B allocated)\n"
-            md += f"- **Current**: {current_r.mean_ns:.3f} ns ({current_r.allocated_bytes:,} B allocated)\n"
-            md += f"- **Change**: +{change:.1f}%\n"
-            md += f"- **Recommendation**: {'Fix before merge' if severity == 'CRITICAL' else 'Monitor' if severity == 'MINOR' else 'Investigate'}\n\n"
-
-    md += "\n## Action Items\n\n"
-    if regressions:
-        md += "- [ ] Review regression details above\n"
-        md += "- [ ] Investigate root cause of performance degradation\n"
-        md += "- [ ] Fix regression or document justification\n"
-    else:
-        md += "- [x] No regressions detected\n"
-        md += "- [x] Baseline will be automatically updated\n"
-
-    md += "\n## Conclusion\n\n"
-    if regressions:
-        md += f"⚠️ **{len(regressions)} regression(s) detected with {max_severity} severity.** "
-        md += "Please review and address before baseline is updated.\n"
-    else:
-        md += "✅ **All benchmarks passed.** Performance is within acceptable range of baseline.\n"
+    # Build markdown document
+    md = _build_summary_section(
+        baseline_date,
+        commit,
+        len(current),
+        len(regressions),
+        len(improvements),
+        max_severity,
+    )
+    md += _build_cpu_benchmarks_table(cpu_comparisons)
+    md += _build_memory_benchmarks_table(memory_comparisons)
+    md += _build_regressions_section(regressions)
+    md += _build_action_items_section(len(regressions) > 0)
+    md += _build_conclusion_section(len(regressions), max_severity)
 
     return md, len(regressions) > 0, max_severity
 
