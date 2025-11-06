@@ -345,6 +345,16 @@ def _build_memory_benchmarks_table(memory_comparisons: list) -> str:
     return md
 
 
+def _get_recommendation(severity: str) -> str:
+    """Get recommendation based on regression severity."""
+    if severity == "CRITICAL":
+        return "Fix before merge"
+    elif severity == "MINOR":
+        return "Monitor"
+    else:
+        return "Investigate"
+
+
 def _build_regressions_section(regressions: list) -> str:
     """Build the regressions detail section."""
     if not regressions:
@@ -353,11 +363,7 @@ def _build_regressions_section(regressions: list) -> str:
     md = "\n## Regressions\n\n"
 
     for name, baseline_r, current_r, change, severity in regressions:
-        recommendation = (
-            "Fix before merge"
-            if severity == "CRITICAL"
-            else "Monitor" if severity == "MINOR" else "Investigate"
-        )
+        recommendation = _get_recommendation(severity)
 
         md += f"""### {name} - {severity}
 
