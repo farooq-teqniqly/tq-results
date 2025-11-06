@@ -9,7 +9,6 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 
 class BenchmarkResult:
@@ -46,7 +45,7 @@ class RegressionDetector:
     @staticmethod
     def compare_cpu(
         baseline: BenchmarkResult, current: BenchmarkResult
-    ) -> Tuple[str, float, str]:
+    ) -> tuple[str, float, str]:
         """Compare CPU benchmark results. Returns (status, change_pct, severity)."""
         if baseline.mean_ns == 0:
             return "➡️", 0.0, "NONE"
@@ -67,7 +66,7 @@ class RegressionDetector:
     @staticmethod
     def compare_memory(
         baseline: BenchmarkResult, current: BenchmarkResult
-    ) -> Tuple[str, float, str]:
+    ) -> tuple[str, float, str]:
         """Compare memory benchmark results. Returns (status, change_pct, severity)."""
         if baseline.allocated_bytes == 0:
             return "➡️", 0.0, "NONE"
@@ -93,7 +92,7 @@ class RegressionDetector:
             return "⚠️", change_pct, "MINOR"
 
 
-def _find_table_start(lines: List[str]) -> int:
+def _find_table_start(lines: list[str]) -> int:
     """Find the starting line of the markdown table."""
     for i, line in enumerate(lines):
         if "|" in line and "Method" in line:
@@ -113,7 +112,7 @@ def _parse_mean_value(mean_str: str) -> float:
     return mean_ns
 
 
-def _parse_allocated_bytes(parts: List[str]) -> int:
+def _parse_allocated_bytes(parts: list[str]) -> int:
     """Parse allocated bytes from table parts."""
     for part in parts:
         if "B" in part and part[0].isdigit():
@@ -121,7 +120,7 @@ def _parse_allocated_bytes(parts: List[str]) -> int:
     return 0
 
 
-def _parse_gen_columns(parts: List[str]) -> Tuple[float, float, float]:
+def _parse_gen_columns(parts: list[str]) -> tuple[float, float, float]:
     """Parse Gen0/Gen1/Gen2 columns from table parts."""
     gen0 = gen1 = gen2 = 0.0
 
@@ -144,7 +143,7 @@ def _parse_gen_columns(parts: List[str]) -> Tuple[float, float, float]:
     return gen0, gen1, gen2
 
 
-def _parse_table_row(parts: List[str]) -> Optional[BenchmarkResult]:
+def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
     """Parse a single table row into a BenchmarkResult."""
     if len(parts) < 2:
         return None
@@ -167,7 +166,7 @@ def _parse_table_row(parts: List[str]) -> Optional[BenchmarkResult]:
         return None
 
 
-def parse_markdown_table(content: str) -> List[BenchmarkResult]:
+def parse_markdown_table(content: str) -> list[BenchmarkResult]:
     """Parse BenchmarkDotNet markdown table into benchmark results."""
     results = []
     lines = content.split("\n")
@@ -194,7 +193,7 @@ def parse_markdown_table(content: str) -> List[BenchmarkResult]:
     return results
 
 
-def load_baseline(path: str) -> Dict[str, BenchmarkResult]:
+def load_baseline(path: str) -> dict[str, BenchmarkResult]:
     """Load baseline from JSON file."""
     with open(path, "r") as f:
         data = json.load(f)
@@ -223,7 +222,7 @@ def load_baseline(path: str) -> Dict[str, BenchmarkResult]:
     return results
 
 
-def save_baseline(results: Dict[str, BenchmarkResult], path: str, commit: str = ""):
+def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = ""):
     """Save results as new baseline JSON."""
     cpu_benchmarks = []
     memory_benchmarks = []
@@ -268,7 +267,7 @@ def _compare_benchmark(
     name: str,
     baseline_result: BenchmarkResult,
     current_result: BenchmarkResult,
-) -> Tuple[str, float, str, bool]:
+) -> tuple[str, float, str, bool]:
     """Compare a single benchmark. Returns (status, change_pct, severity, is_memory)."""
     is_memory = _is_memory_benchmark(current_result, name)
 
@@ -313,7 +312,7 @@ def _build_summary_section(
 """
 
 
-def _build_cpu_benchmarks_table(cpu_comparisons: List) -> str:
+def _build_cpu_benchmarks_table(cpu_comparisons: list) -> str:
     """Build the CPU benchmarks comparison table."""
     md = """## CPU Benchmarks
 
@@ -329,7 +328,7 @@ def _build_cpu_benchmarks_table(cpu_comparisons: List) -> str:
     return md
 
 
-def _build_memory_benchmarks_table(memory_comparisons: List) -> str:
+def _build_memory_benchmarks_table(memory_comparisons: list) -> str:
     """Build the memory benchmarks comparison table."""
     md = """\n## Memory Benchmarks
 
@@ -346,7 +345,7 @@ def _build_memory_benchmarks_table(memory_comparisons: List) -> str:
     return md
 
 
-def _build_regressions_section(regressions: List) -> str:
+def _build_regressions_section(regressions: list) -> str:
     """Build the regressions detail section."""
     if not regressions:
         return ""
@@ -401,11 +400,11 @@ def _build_conclusion_section(regressions_count: int, max_severity: str) -> str:
 
 
 def generate_review(
-    baseline: Dict[str, BenchmarkResult],
-    current: Dict[str, BenchmarkResult],
+    baseline: dict[str, BenchmarkResult],
+    current: dict[str, BenchmarkResult],
     baseline_date: str,
     commit: str,
-) -> Tuple[str, bool, str]:
+) -> tuple[str, bool, str]:
     """Generate performance review markdown. Returns (content, has_regression, severity)."""
 
     cpu_comparisons = []
