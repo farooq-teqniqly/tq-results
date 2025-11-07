@@ -104,6 +104,29 @@ jobs:
           # Move new baseline to current baseline
           mv performance_reviews/baselines/baseline-new.json performance_reviews/baselines/baseline-current.json
 
+      - name: Save review summary for PR comment
+        id: save-summary
+        run: |
+          # Find the performance review file
+          REVIEW_FILE=$(ls performance_reviews/nightly/performance-review-*.md 2>/dev/null | head -n 1)
+
+          if [ -n "$REVIEW_FILE" ]; then
+            # Read the file content
+            REVIEW_CONTENT=$(cat "$REVIEW_FILE")
+            
+            # Extract summary section (first 500 chars after ## Summary)
+            SUMMARY=$(echo "$REVIEW_CONTENT" | awk '/## Summary/{flag=1} flag{print; count+=length($0)} count>=500{exit}')
+            
+            # Save to output (escape for GitHub Actions)
+            echo "summary<<EOF" >> $GITHUB_OUTPUT
+            echo "$SUMMARY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            echo "has_file=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_file=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create or update PR with baseline changes
         id: cpr
         uses: peter-evans/create-pull-request@v6
@@ -159,46 +182,48 @@ jobs:
             }
 
       - name: Comment summary on PR
-        if: steps.cpr.outputs.pull-request-number != ''
+        if: steps.cpr.outputs.pull-request-number != '' && steps.save-summary.outputs.has_file == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fs = require('fs');
-
-            // Pick the nightly file that was just generated
-            const reviewFile = fs.readdirSync('performance_reviews/nightly')
-              .find(f => f.startsWith('performance-review-'));
-
-            if (!reviewFile) {
-              core.setFailed('Performance review file not found');
-              return;
-            }
-
-            const reviewPath = `performance_reviews/nightly/${reviewFile}`;
-            const reviewContent = fs.readFileSync(reviewPath, 'utf8');
-
-            // Extract up to 500 chars after "## Summary"
-            const summaryMatch = reviewContent.match(/## Summary[\\s\\S]{0,500}/);
-            const summary = summaryMatch ? summaryMatch[0] : 'Performance review completed.';
-
-            const hasRegression = 'false'; // replace with your actual detection flag/output
+            const hasRegression = '${{ steps.regression-check.outputs.has_regression }}';
             const status = hasRegression === 'true' ? '⚠️ Regressions Detected' : '✅ All Benchmarks Passed';
-
+            const summary = process.env.SUMMARY;
             const prNumber = Number('${{ steps.cpr.outputs.pull-request-number }}');
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: `## Nightly Performance Benchmark Results
+              body: `## Nightly Performance Benchmark Results\n\n**Status**: ${status}\n\n${summary}\n\n[View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            });
+        env:
+          SUMMARY: ${{ steps.save-summary.outputs.summary }}
 
-              **Status**: ${status}
+      - name: Auto-merge PR if no regressions
+        if: steps.regression-check.outputs.has_regression == 'false' && steps.cpr.outputs.pull-request-number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = Number('${{ steps.cpr.outputs.pull-request-number }}');
 
-              ${summary}
-
-              [View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
-                    });
+            try {
+              // Merge the PR
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: 'chore: update performance baseline - ${{ github.run_started_at }}',
+                commit_message: 'Automated baseline update from nightly performance workflow'
+              });
+              
+              core.info(`✅ PR #${prNumber} successfully merged`);
+            } catch (error) {
+              core.warning(`Failed to auto-merge PR #${prNumber}: ${error.message}`);
+            }
 
       - name: Fail workflow if regressions detected
         if: steps.regression-check.outputs.has_regression == 'true'
