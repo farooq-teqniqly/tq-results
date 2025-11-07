@@ -8,7 +8,6 @@ namespace Teqniqly.Results.Benchmarks;
 /// </summary>
 [Config(typeof(CiConfig))]
 public class ResultMemoryBenchmarks
-public class ResultMemoryBenchmarks
 {
     private const int IterationCount = 1000;
     private IResult<string>[] _results = null!;
