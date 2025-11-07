@@ -7,7 +7,7 @@ namespace Teqniqly.Results.Benchmarks;
 /// Tests memory allocation patterns, object reuse, and GC pressure scenarios.
 /// </summary>
 [Config(typeof(CiConfig))]
-[MemoryDiagnoser]
+public class ResultMemoryBenchmarks
 public class ResultMemoryBenchmarks
 {
     private const int IterationCount = 1000;
