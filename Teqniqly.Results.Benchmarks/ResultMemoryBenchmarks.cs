@@ -6,8 +6,8 @@ namespace Teqniqly.Results.Benchmarks;
 /// Memory-focused benchmarks for the Result library.
 /// Tests memory allocation patterns, object reuse, and GC pressure scenarios.
 /// </summary>
-[MemoryDiagnoser]
-[SimpleJob(warmupCount: 3, iterationCount: 10)]
+[Config(typeof(CiConfig))]
+public class ResultMemoryBenchmarks
 public class ResultMemoryBenchmarks
 {
     private const int IterationCount = 1000;

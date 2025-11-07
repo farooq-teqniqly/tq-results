@@ -29,6 +29,8 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run benchmarks
+        env:
+          DOTNET_EnableDiagnostics: 0
         run: |
           dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
 
