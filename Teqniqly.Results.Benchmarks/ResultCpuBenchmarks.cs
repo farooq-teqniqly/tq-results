@@ -6,6 +6,7 @@ namespace Teqniqly.Results.Benchmarks;
 /// CPU benchmarks for the Result library.
 /// Measures the performance of creating and accessing results.
 /// </summary>
+[Config(typeof(CiConfig))]
 [MemoryDiagnoser]
 public class ResultCpuBenchmarks
 {
