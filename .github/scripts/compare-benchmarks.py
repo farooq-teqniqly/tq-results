@@ -23,7 +23,6 @@ class BenchmarkResult:
         allocated_bytes: int = 0,
         gen0: float = 0,
         gen1: float = 0,
-        gen2: float = 0,
     ):
         self.name = name
         self.mean_ns = mean_ns
@@ -32,7 +31,6 @@ class BenchmarkResult:
         self.allocated_bytes = allocated_bytes
         self.gen0 = gen0
         self.gen1 = gen1
-        self.gen2 = gen2
 
 
 class RegressionDetector:
@@ -76,10 +74,6 @@ class RegressionDetector:
             / baseline.allocated_bytes
         ) * 100
 
-        # Check for Gen2 collections increase (critical)
-        if current.gen2 > baseline.gen2:
-            return "⚠️", change_pct, "CRITICAL"
-
         if abs(change_pct) < RegressionDetector.THRESHOLD_MINOR * 100:
             return "➡️", change_pct, "NONE"
         elif change_pct < 0:
@@ -120,27 +114,25 @@ def _parse_allocated_bytes(parts: list[str]) -> int:
     return 0
 
 
-def _parse_gen_columns(parts: list[str]) -> tuple[float, float, float]:
-    """Parse Gen0/Gen1/Gen2 columns from table parts."""
-    gen0 = gen1 = gen2 = 0.0
+def _parse_gen_columns(parts: list[str]) -> tuple[float, float]:
+    """Parse Gen0/Gen1 columns from table parts."""
+    gen0 = gen1 = 0.0
 
     if len(parts) <= 4:
-        return gen0, gen1, gen2
+        return gen0, gen1
 
     try:
         for i, part in enumerate(parts):
             if part.replace(".", "").replace("-", "").isdigit() or part == "-":
                 val = 0.0 if part == "-" else float(part)
-                if i == len(parts) - 4:  # Gen0
+                if i == len(parts) - 3:  # Gen0 (before Allocated)
                     gen0 = val
-                elif i == len(parts) - 3:  # Gen1
+                elif i == len(parts) - 2:  # Gen1 (before Allocated)
                     gen1 = val
-                elif i == len(parts) - 2:  # Gen2 (before Allocated)
-                    gen2 = val
     except (ValueError, IndexError):
         pass
 
-    return gen0, gen1, gen2
+    return gen0, gen1
 
 
 def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
@@ -152,7 +144,7 @@ def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
         name = parts[0]
         mean_ns = _parse_mean_value(parts[1])
         allocated = _parse_allocated_bytes(parts)
-        gen0, gen1, gen2 = _parse_gen_columns(parts)
+        gen0, gen1 = _parse_gen_columns(parts)
 
         return BenchmarkResult(
             name=name,
@@ -160,7 +152,6 @@ def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
             allocated_bytes=allocated,
             gen0=gen0,
             gen1=gen1,
-            gen2=gen2,
         )
     except (ValueError, IndexError):
         return None
@@ -249,7 +240,6 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
         if result.gen0 > 0 or result.gen1 > 0 or "Memory" in name:
             bench_data["gen0"] = result.gen0
             bench_data["gen1"] = result.gen1
-            bench_data["gen2"] = result.gen2
             memory_benchmarks.append(bench_data)
         else:
             cpu_benchmarks.append(bench_data)
@@ -341,13 +331,13 @@ def _build_memory_benchmarks_table(memory_comparisons: list) -> str:
     """Build the memory benchmarks comparison table."""
     md = """\n## Memory Benchmarks
 
-| Benchmark | Baseline | Current | Alloc Change | Gen0/1/2 | Status |
-|-----------|----------|---------|--------------|----------|--------|
+| Benchmark | Baseline | Current | Alloc Change | Gen0/1 | Status |
+|-----------|----------|---------|--------------|--------|--------|
 """
 
     for name, baseline_r, current_r, status, change, severity in memory_comparisons:
         sign = "+" if change > 0 else ""
-        gen_info = f"{current_r.gen0:.1f}/{current_r.gen1:.1f}/{current_r.gen2:.1f}"
+        gen_info = f"{current_r.gen0:.1f}/{current_r.gen1:.1f}"
         severity_text = severity if severity not in ["NONE", "IMPROVEMENT"] else ""
         md += f"| {name} | {baseline_r.allocated_bytes:,} B | {current_r.allocated_bytes:,} B | {sign}{change:.1f}% | {gen_info} | {status} {severity_text} |\n"
 
@@ -451,7 +441,7 @@ The following benchmarks will serve as the baseline for future comparisons:
     if memory_benchmarks:
         md += "\n### Memory Benchmarks\n\n"
         for result in memory_benchmarks:
-            md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes:,} B, Gen0/1/2: {result.gen0:.1f}/{result.gen1:.1f}/{result.gen2:.1f})\n"
+            md += f"- **{result.name}**: {result.mean_ns:.3f} ns ({result.allocated_bytes:,} B, Gen0/1: {result.gen0:.1f}/{result.gen1:.1f})\n"
 
     md += "\n## Next Steps\n\n"
     md += "- [x] Initial baseline established\n"
