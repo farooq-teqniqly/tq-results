@@ -215,7 +215,6 @@ def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
             allocated_bytes=bench.get("allocated_bytes", 0),
             gen0=bench.get("gen0", 0),
             gen1=bench.get("gen1", 0),
-            gen2=bench.get("gen2", 0),
         )
 
     baseline_date = data.get("date", "unknown")
