@@ -7,7 +7,6 @@ namespace Teqniqly.Results.Benchmarks;
 /// Measures the performance of creating and accessing results.
 /// </summary>
 [Config(typeof(CiConfig))]
-[MemoryDiagnoser]
 public class ResultCpuBenchmarks
 {
     private const string TestString = "Test Value";
