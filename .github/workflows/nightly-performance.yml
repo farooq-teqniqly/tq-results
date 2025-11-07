@@ -137,7 +137,6 @@ jobs:
           commit-message: "chore: nightly performance baseline update"
           body: |
             Automated nightly update of performance baselines.
-            - Date: ${{ github.run_started_at }}
             - Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           labels: automation, performance
           add-paths: |
@@ -218,7 +217,7 @@ jobs:
                 repo: context.repo.repo,
                 pull_number: prNumber,
                 merge_method: 'squash',
-                commit_title: 'chore: update performance baseline - ${{ github.run_started_at }}',
+                commit_title: 'chore: update performance baseline - run ${{ github.run_id }}',
                 commit_message: `Automated baseline update from nightly performance workflow\n\nRegression Status: ${hasRegression === 'true' ? severity + ' regressions detected' : 'No regressions'}`
               });
               
