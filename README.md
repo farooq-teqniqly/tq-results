@@ -2,6 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Teqniqly.Results)](https://www.nuget.org/packages/Teqniqly.Results)
 [![Build and Test](https://github.com/farooq-teqniqly/tq-results/workflows/Deploy%20to%20NuGet/badge.svg)](https://github.com/farooq-teqniqly/tq-results/actions)
+[![Nightly Performance Benchmarks](https://github.com/farooq-teqniqly/tq-results/workflows/Nightly%20Performance%20Benchmarks/badge.svg)](https://github.com/farooq-teqniqly/tq-results/actions)
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-blue)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=farooq-teqniqly_tq-results&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=farooq-teqniqly_tq-results)
