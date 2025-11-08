@@ -16,9 +16,7 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
       DOTNET_EnableDiagnostics: 0
-    container:
-      image: mcr.microsoft.com/dotnet/sdk:9.0
-      options: --cpuset-cpus="1" --cpu-quota=100000 --cpu-period=100000
+
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -33,7 +31,7 @@ jobs:
 
       - name: Run benchmarks with CPU pinning
         run: |
-          nice -n -20 taskset -c 1 dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
+          dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
