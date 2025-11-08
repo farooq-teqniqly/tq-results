@@ -1,6 +1,8 @@
 name: Nightly Performance Benchmarks
 
 on:
+  schedule:
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run benchmarks with CPU pinning
+      - name: Run benchmarks
         run: |
           dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
 
@@ -114,15 +116,15 @@ jobs:
           if [ -n "$REVIEW_FILE" ]; then
             # Read the file content
             REVIEW_CONTENT=$(cat "$REVIEW_FILE")
-            
+
             # Extract summary section (first 500 chars after ## Summary)
             SUMMARY=$(echo "$REVIEW_CONTENT" | awk '/## Summary/{flag=1} flag{print; count+=length($0)} count>=500{exit}')
-            
+
             # Save to output (escape for GitHub Actions)
             echo "summary<<EOF" >> $GITHUB_OUTPUT
             echo "$SUMMARY" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
-            
+
             echo "has_file=true" >> $GITHUB_OUTPUT
           else
             echo "has_file=false" >> $GITHUB_OUTPUT
@@ -155,19 +157,19 @@ jobs:
             try {
               const reviewFile = fs.readdirSync('performance_reviews/nightly')
                 .find(f => f.startsWith('performance-review-'));
-              
+
               if (!reviewFile) {
                 core.setFailed('Performance review file not found');
                 return;
               }
-              
+
               const reviewContent = fs.readFileSync(
-                `performance_reviews/nightly/${reviewFile}`, 
+                `performance_reviews/nightly/${reviewFile}`,
                 'utf8'
               );
 
               const severity = '${{ steps.regression-check.outputs.severity }}';
-              const severityLabel = severity === 'CRITICAL' ? '🔴' : 
+              const severityLabel = severity === 'CRITICAL' ? '🔴' :
                                    severity === 'MAJOR' ? '🟠' : '🟡';
 
               await github.rest.issues.create({
@@ -221,7 +223,7 @@ jobs:
                 commit_title: 'chore: update performance baseline - run ${{ github.run_id }}',
                 commit_message: `Automated baseline update from nightly performance workflow\n\nRegression Status: ${hasRegression === 'true' ? severity + ' regressions detected' : 'No regressions'}`
               });
-              
+
               if (hasRegression === 'true') {
                 core.info(`✅ PR #${prNumber} merged with ${severity} regressions (baseline not updated, review preserved)`);
               } else {
