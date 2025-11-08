@@ -70,11 +70,12 @@ jobs:
         continue-on-error: true
         run: |
           python .github/scripts/compare-benchmarks.py \
-            --baseline performance_reviews/baselines/baseline-current.json \
+            --baseline performance_reviews/ci/baselines/baseline-current.json \
             --cpu-results BenchmarkDotNet.Artifacts/results/Teqniqly.Results.Benchmarks.ResultCpuBenchmarks-report-github.md \
             --memory-results BenchmarkDotNet.Artifacts/results/Teqniqly.Results.Benchmarks.ResultMemoryBenchmarks-report-github.md \
-            --output performance_reviews/nightly/performance-review-$(date +%Y-%m-%d).md \
-            --new-baseline performance_reviews/baselines/baseline-new.json
+            --output performance_reviews/ci/nightly/performance-review-$(date +%Y-%m-%d).md \
+            --new-baseline performance_reviews/ci/baselines/baseline-new.json \
+            --commit ${{ github.sha }}
 
           exit_code=$?
           echo "comparison_exit_code=$exit_code" >> $GITHUB_OUTPUT
@@ -105,13 +106,13 @@ jobs:
         if: steps.regression-check.outputs.has_regression == 'false'
         run: |
           # Move new baseline to current baseline
-          mv performance_reviews/baselines/baseline-new.json performance_reviews/baselines/baseline-current.json
+          mv performance_reviews/ci/baselines/baseline-new.json performance_reviews/ci/baselines/baseline-current.json
 
       - name: Save review summary for PR comment
         id: save-summary
         run: |
           # Find the performance review file
-          REVIEW_FILE=$(ls performance_reviews/nightly/performance-review-*.md 2>/dev/null | head -n 1)
+          REVIEW_FILE=$(ls performance_reviews/ci/nightly/performance-review-*.md 2>/dev/null | head -n 1)
 
           if [ -n "$REVIEW_FILE" ]; then
             # Read the file content
@@ -143,8 +144,8 @@ jobs:
             - Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           labels: automation, performance
           add-paths: |
-            performance_reviews/baselines/baseline-current.json
-            performance_reviews/nightly/performance-review-*.md
+            performance_reviews/ci/baselines/baseline-current.json
+            performance_reviews/ci/nightly/performance-review-*.md
 
       - name: Create issue for regressions
         if: steps.regression-check.outputs.has_regression == 'true'
@@ -155,7 +156,7 @@ jobs:
             const fs = require('fs');
 
             try {
-              const reviewFile = fs.readdirSync('performance_reviews/nightly')
+              const reviewFile = fs.readdirSync('performance_reviews/ci/nightly')
                 .find(f => f.startsWith('performance-review-'));
 
               if (!reviewFile) {
@@ -164,7 +165,7 @@ jobs:
               }
 
               const reviewContent = fs.readFileSync(
-                `performance_reviews/nightly/${reviewFile}`,
+                `performance_reviews/ci/nightly/${reviewFile}`,
                 'utf8'
               );
 

@@ -111,52 +111,52 @@ When analyzing benchmark results, consider:
 
 ## Baseline Results
 
-The following baseline results were obtained on Windows 11 with Intel Core i9-10850K CPU @ 3.60GHz running .NET 9.0.10:
+The following baseline results were obtained on Azure VM Standard B2als v2 (2 vCPUs, 4 GiB memory) running .NET 9.0:
 
 ### CPU Benchmarks
 
-| Method                         |     Mean |     Error |    StdDev | Allocated |
-| ------------------------------ | -------: | --------: | --------: | --------: |
-| CreateSuccessResult_String     | 3.354 ns | 0.0916 ns | 0.0857 ns |      24 B |
-| CreateSuccessResult_Int        | 3.575 ns | 0.1235 ns | 0.1268 ns |      24 B |
-| CreateSuccessResult_Unit       | 4.108 ns | 0.0684 ns | 0.0639 ns |      24 B |
-| CreateFailureResult_String     | 4.821 ns | 0.1430 ns | 0.1530 ns |      24 B |
-| CreateFailureResult_Int        | 4.569 ns | 0.1169 ns | 0.1478 ns |      24 B |
-| CreateFailureResult_Unit       | 4.496 ns | 0.0679 ns | 0.0636 ns |      24 B |
-| GetValue_Success               | 4.488 ns | 0.0933 ns | 0.0872 ns |      24 B |
-| GetError_Failure               | 4.205 ns | 0.1372 ns | 0.1525 ns |      24 B |
-| CheckIsSuccess_OnSuccessResult | 4.787 ns | 0.1052 ns | 0.1252 ns |      24 B |
-| CheckIsFailure_OnFailureResult | 3.738 ns | 0.0954 ns | 0.1399 ns |      24 B |
-| CompleteSuccessWorkflow        | 2.696 ns | 0.1066 ns | 0.1047 ns |      24 B |
-| CompleteFailureWorkflow        | 3.889 ns | 0.0772 ns | 0.0645 ns |      24 B |
+| Method                         |     Mean | Allocated |
+| ------------------------------ | -------: | --------: |
+| CreateSuccessResult_String     |  7.501 ns |      24 B |
+| CreateSuccessResult_Int        |  7.422 ns |      24 B |
+| CreateSuccessResult_Unit       |  8.054 ns |      24 B |
+| CreateFailureResult_String     |  9.699 ns |      24 B |
+| CreateFailureResult_Int        |  9.043 ns |      24 B |
+| CreateFailureResult_Unit       |  9.059 ns |      24 B |
+| GetValue_Success               |  9.286 ns |      24 B |
+| GetError_Failure               |  8.776 ns |      24 B |
+| CheckIsSuccess_OnSuccessResult |  8.846 ns |      24 B |
+| CheckIsFailure_OnFailureResult |  7.133 ns |      24 B |
+| CompleteSuccessWorkflow        |  7.006 ns |      24 B |
+| CompleteFailureWorkflow        |  8.729 ns |      24 B |
 
 **Key Takeaways:**
 
--   Result creation is extremely fast (3-5 nanoseconds)
+-   Result creation is extremely fast (7-9 nanoseconds)
 -   All operations allocate exactly 24 bytes per result
 -   Success results are slightly faster than failure results
 -   Property checks are as fast as result creation
 
 ### Memory Benchmarks
 
-| Method                       |          Mean |         Error |        StdDev |    Gen0 |   Gen1 | Allocated |
-| ---------------------------- | ------------: | ------------: | ------------: | ------: | -----: | --------: |
-| CreateAndStoreResultsInArray | 35,199.262 ns |   236.6683 ns |   123.7821 ns |  7.9956 | 1.9531 |   84024 B |
-| CreateAndStoreResultsInList  | 23,057.599 ns |   117.3208 ns |    77.6005 ns |  6.1035 | 1.1902 |   64056 B |
-| ReuseSuccessResult           |  5,098.665 ns |    35.8240 ns |    23.6954 ns |       - |      - |      24 B |
-| ReuseErrorInstance           |  8,672.497 ns |    96.6579 ns |    57.5196 ns |  2.2888 | 0.1984 |   24024 B |
-| CreateNewErrorInstances      | 37,144.894 ns |   679.4639 ns |   449.4233 ns |  8.3618 | 2.7466 |   88000 B |
-| CreateNewValueInstances      | 34,255.867 ns |   276.8051 ns |   183.0895 ns |  6.1035 | 1.1597 |   64000 B |
-| ChainedResultProcessing      |    121.482 ns |     1.6364 ns |     1.0823 ns |  0.0358 |      - |     376 B |
-| NestedResults                |      7.282 ns |     0.2366 ns |     0.1565 ns |  0.0046 |      - |      48 B |
-| ResultWithLargeValue         |    371.293 ns |    31.7851 ns |    21.0239 ns |  0.9613 |      - |   10048 B |
-| FilterResults                | 33,578.385 ns | 1,431.4501 ns |   946.8156 ns |  8.1787 | 2.0142 |   86024 B |
-| ResultsInDictionary          | 71,889.915 ns | 1,825.1418 ns | 1,207.2183 ns | 18.7988 | 9.2773 |  198136 B |
+| Method                       |          Mean |    Gen0 |   Gen1 | Allocated |
+| ---------------------------- | ------------: | ------: | -----: | --------: |
+| CreateAndStoreResultsInArray | 51,409.760 ns | 14.0496 | 2.7893 |   84024 B |
+| CreateAndStoreResultsInList  | 35,563.250 ns | 24.1667 | 0.2083 |   64056 B |
+| ReuseSuccessResult           |  6,562.430 ns |       - |      - |      24 B |
+| ReuseErrorInstance           | 13,917.550 ns |  3.8584 | 0.2756 |   24024 B |
+| CreateNewErrorInstances      | 59,914.940 ns | 15.5048 | 3.4856 |   88000 B |
+| CreateNewValueInstances      | 47,762.200 ns | 10.1610 | 1.4379 |   64000 B |
+| ChainedResultProcessing      |    199.320 ns |  0.0734 |      - |     376 B |
+| NestedResults                |     14.140 ns |  0.0085 |      - |      48 B |
+| ResultWithLargeValue         |    695.800 ns |  3.8313 |      - |   10048 B |
+| FilterResults                | 48,431.200 ns | 15.2132 | 2.9070 |   86024 B |
+| ResultsInDictionary          | 97,716.690 ns | 30.5599 | 10.0552 |  198136 B |
 
 **Key Takeaways:**
 
--   **Object Reuse is Highly Effective**: Reusing result instances reduces allocations from 88KB to 24B (3,666x reduction)
--   **Lists vs Arrays**: Lists are ~35% faster than arrays for storing results with ~24% less memory
+-   **Object Reuse is Highly Effective**: Reusing result instances reduces allocations from 88KB to 24B (3,667x reduction)
+-   **Lists vs Arrays**: Lists are ~31% faster than arrays for storing results with ~24% less memory
 -   **Error Reuse**: Reusing error instances saves ~73% memory compared to creating unique errors
 -   **Chained Operations**: Processing 100 chained results allocates only 376 bytes
 -   **LINQ Impact**: Filtering operations have moderate overhead but reasonable allocations
