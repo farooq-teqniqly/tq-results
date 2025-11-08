@@ -1,65 +1,56 @@
-# Performance Review Results
+# Performance Review Results - Initial Baseline
 
-**Date**: 2025-11-08 21:23:22 UTC
-**Baseline**: 2025-11-08T19:16:39.731498
-**Commit**: 1f43d193e98b26eb2a0ed75d9158787fde12121f
+**Date**: 2025-11-08 21:44:25 UTC
+**Baseline**: Initial Run
+**Commit**: f12987a3652d512ce35b3fbdebaa2ff1b4ec91b6
 
 ## Summary
 
+This is the **initial benchmark run**. No baseline exists for comparison.
+
 - **Total Benchmarks**: 23
-- **Regressions**: 1
-- **Improvements**: 0
-- **Status**: ⚠️ REGRESSIONS FOUND (CRITICAL)
+- **Status**: ✅ INITIAL BASELINE ESTABLISHED
 
-## CPU Benchmarks
+## Benchmarks Recorded
 
-| Benchmark | Baseline | Current | Change | Status |
-|-----------|----------|---------|--------|--------|
-| CreateSuccessResult_String | 7.501 ns | 7.536 ns | +0.5% | ➡️  |
-| CreateSuccessResult_Int | 7.422 ns | 14.583 ns | +96.5% | ⚠️ CRITICAL |
-| CreateSuccessResult_Unit | 8.054 ns | 7.976 ns | -1.0% | ➡️  |
-| CreateFailureResult_String | 9.699 ns | 9.425 ns | -2.8% | ➡️  |
-| CreateFailureResult_Int | 9.043 ns | 9.018 ns | -0.3% | ➡️  |
-| CreateFailureResult_Unit | 9.059 ns | 9.023 ns | -0.4% | ➡️  |
-| GetValue_Success | 9.286 ns | 9.296 ns | +0.1% | ➡️  |
-| GetError_Failure | 8.776 ns | 8.778 ns | +0.0% | ➡️  |
-| CheckIsSuccess_OnSuccessResult | 8.846 ns | 8.812 ns | -0.4% | ➡️  |
-| CheckIsFailure_OnFailureResult | 7.133 ns | 7.026 ns | -1.5% | ➡️  |
-| CompleteSuccessWorkflow | 7.006 ns | 6.986 ns | -0.3% | ➡️  |
-| CompleteFailureWorkflow | 8.729 ns | 8.729 ns | 0.0% | ➡️  |
-
-## Memory Benchmarks
-
-| Benchmark | Baseline | Current | Alloc Change | Gen0/1 | Status |
-|-----------|----------|---------|--------------|--------|--------|
-| CreateAndStoreResultsInArray | 84,024 B | 84,024 B | 0.0% | 14.1/3.0 | ➡️  |
-| CreateAndStoreResultsInList | 64,056 B | 64,056 B | 0.0% | 11.7/2.0 | ➡️  |
-| ReuseSuccessResult | 24 B | 24 B | 0.0% | 0.0/0.0 | ➡️  |
-| ReuseErrorInstance | 24,024 B | 24,024 B | 0.0% | 9.2/0.0 | ➡️  |
-| CreateNewErrorInstances | 88,000 B | 88,000 B | 0.0% | 15.5/3.2 | ➡️  |
-| CreateNewValueInstances | 64,000 B | 64,000 B | 0.0% | 10.3/1.5 | ➡️  |
-| ChainedResultProcessing | 376 B | 376 B | 0.0% | 0.1/0.0 | ➡️  |
-| NestedResults | 48 B | 48 B | 0.0% | 0.0/0.0 | ➡️  |
-| ResultWithLargeValue | 10,048 B | 10,048 B | 0.0% | 3.8/0.0 | ➡️  |
-| FilterResults | 86,024 B | 86,024 B | 0.0% | 15.0/2.9 | ➡️  |
-| ResultsInDictionary | 198,136 B | 198,136 B | 0.0% | 30.4/9.9 | ➡️  |
-
-## Regressions
-
-### CreateSuccessResult_Int - CRITICAL
-
-- **Baseline**: 7.422 ns (24 B allocated)
-- **Current**: 14.583 ns (24 B allocated)
-- **Change**: +96.5%
-- **Recommendation**: Fix before merge
+The following benchmarks will serve as the baseline for future comparisons:
 
 
-## Action Items
+### CPU Benchmarks
 
-- [ ] Review regression details above
-- [ ] Investigate root cause of performance degradation
-- [ ] Fix regression or document justification
+- **CreateSuccessResult_String**: 7.480 ns (24 B)
+- **CreateSuccessResult_Int**: 7.442 ns (24 B)
+- **CreateSuccessResult_Unit**: 7.847 ns (24 B)
+- **CreateFailureResult_String**: 9.418 ns (24 B)
+- **CreateFailureResult_Int**: 9.047 ns (24 B)
+- **CreateFailureResult_Unit**: 9.045 ns (24 B)
+- **GetValue_Success**: 8.979 ns (24 B)
+- **GetError_Failure**: 8.772 ns (24 B)
+- **CheckIsSuccess_OnSuccessResult**: 8.816 ns (24 B)
+- **CheckIsFailure_OnFailureResult**: 6.901 ns (24 B)
+- **CompleteSuccessWorkflow**: 7.006 ns (24 B)
+- **CompleteFailureWorkflow**: 8.477 ns (24 B)
+
+### Memory Benchmarks
+
+- **CreateAndStoreResultsInArray**: 52143.810 ns (84,024 B, Gen0/1: 14.4/2.9)
+- **CreateAndStoreResultsInList**: 35515.440 ns (64,056 B, Gen0/1: 20.7/0.2)
+- **ReuseSuccessResult**: 6559.560 ns (24 B, Gen0/1: 0.0/0.0)
+- **ReuseErrorInstance**: 14737.000 ns (24,024 B, Gen0/1: 9.2/0.0)
+- **CreateNewErrorInstances**: 55423.150 ns (88,000 B, Gen0/1: 15.6/3.5)
+- **CreateNewValueInstances**: 47325.480 ns (64,000 B, Gen0/1: 10.0/1.5)
+- **ChainedResultProcessing**: 198.940 ns (376 B, Gen0/1: 0.1/0.0)
+- **NestedResults**: 14.120 ns (48 B, Gen0/1: 0.0/0.0)
+- **ResultWithLargeValue**: 690.190 ns (10,048 B, Gen0/1: 3.8/0.0)
+- **FilterResults**: 48246.960 ns (86,024 B, Gen0/1: 15.1/2.9)
+- **ResultsInDictionary**: 98298.110 ns (198,136 B, Gen0/1: 30.8/7.5)
+
+## Next Steps
+
+- [x] Initial baseline established
+- [x] Future runs will compare against this baseline
+- [x] Performance regressions will be automatically detected
 
 ## Conclusion
 
-⚠️ **1 regression(s) detected with CRITICAL severity.** Please review and address before baseline is updated.
+✅ **Initial baseline successfully established.** Future benchmark runs will compare against these values.
