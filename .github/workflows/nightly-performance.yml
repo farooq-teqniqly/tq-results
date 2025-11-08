@@ -11,16 +11,19 @@ jobs:
   run-benchmarks:
     name: Run Performance Benchmarks
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:9.0
+      options: --cpuset-cpus="1" --cpu-quota=100000 --cpu-period=100000
     if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
+      - name: Install taskset for CPU pinning
+        run: |
+          apt-get update
+          apt-get install -y util-linux
 
       - name: Restore dependencies
         run: dotnet restore
@@ -28,11 +31,11 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run benchmarks
+      - name: Run benchmarks with CPU pinning
         env:
           DOTNET_EnableDiagnostics: 0
         run: |
-          dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
+          nice -n -20 taskset -c 1 dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
