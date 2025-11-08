@@ -117,18 +117,18 @@ The following baseline results were obtained on Azure VM Standard B2als v2 (2 vC
 
 | Method                         |     Mean | Allocated |
 | ------------------------------ | -------: | --------: |
-| CreateSuccessResult_String     |  7.501 ns |      24 B |
-| CreateSuccessResult_Int        |  7.422 ns |      24 B |
-| CreateSuccessResult_Unit       |  8.054 ns |      24 B |
-| CreateFailureResult_String     |  9.699 ns |      24 B |
-| CreateFailureResult_Int        |  9.043 ns |      24 B |
-| CreateFailureResult_Unit       |  9.059 ns |      24 B |
-| GetValue_Success               |  9.286 ns |      24 B |
-| GetError_Failure               |  8.776 ns |      24 B |
-| CheckIsSuccess_OnSuccessResult |  8.846 ns |      24 B |
-| CheckIsFailure_OnFailureResult |  7.133 ns |      24 B |
+| CreateSuccessResult_String     |  7.480 ns |      24 B |
+| CreateSuccessResult_Int        |  7.442 ns |      24 B |
+| CreateSuccessResult_Unit       |  7.847 ns |      24 B |
+| CreateFailureResult_String     |  9.418 ns |      24 B |
+| CreateFailureResult_Int        |  9.047 ns |      24 B |
+| CreateFailureResult_Unit       |  9.045 ns |      24 B |
+| GetValue_Success               |  8.979 ns |      24 B |
+| GetError_Failure               |  8.772 ns |      24 B |
+| CheckIsSuccess_OnSuccessResult |  8.816 ns |      24 B |
+| CheckIsFailure_OnFailureResult |  6.901 ns |      24 B |
 | CompleteSuccessWorkflow        |  7.006 ns |      24 B |
-| CompleteFailureWorkflow        |  8.729 ns |      24 B |
+| CompleteFailureWorkflow        |  8.477 ns |      24 B |
 
 **Key Takeaways:**
 
@@ -141,17 +141,17 @@ The following baseline results were obtained on Azure VM Standard B2als v2 (2 vC
 
 | Method                       |          Mean |    Gen0 |   Gen1 | Allocated |
 | ---------------------------- | ------------: | ------: | -----: | --------: |
-| CreateAndStoreResultsInArray | 51,409.760 ns | 14.0496 | 2.7893 |   84024 B |
-| CreateAndStoreResultsInList  | 35,563.250 ns | 24.1667 | 0.2083 |   64056 B |
-| ReuseSuccessResult           |  6,562.430 ns |       - |      - |      24 B |
-| ReuseErrorInstance           | 13,917.550 ns |  3.8584 | 0.2756 |   24024 B |
-| CreateNewErrorInstances      | 59,914.940 ns | 15.5048 | 3.4856 |   88000 B |
-| CreateNewValueInstances      | 47,762.200 ns | 10.1610 | 1.4379 |   64000 B |
-| ChainedResultProcessing      |    199.320 ns |  0.0734 |      - |     376 B |
-| NestedResults                |     14.140 ns |  0.0085 |      - |      48 B |
-| ResultWithLargeValue         |    695.800 ns |  3.8313 |      - |   10048 B |
-| FilterResults                | 48,431.200 ns | 15.2132 | 2.9070 |   86024 B |
-| ResultsInDictionary          | 97,716.690 ns | 30.5599 | 10.0552 |  198136 B |
+| CreateAndStoreResultsInArray | 52,143.810 ns | 14.4231 | 2.9264 |   84024 B |
+| CreateAndStoreResultsInList  | 35,515.440 ns | 20.6720 | 0.2074 |   64056 B |
+| ReuseSuccessResult           |  6,559.560 ns |       - |      - |      24 B |
+| ReuseErrorInstance           | 14,737.000 ns |  9.1851 | 0.0294 |   24024 B |
+| CreateNewErrorInstances      | 55,423.150 ns | 15.6250 | 3.5461 |   88000 B |
+| CreateNewValueInstances      | 47,325.480 ns |  9.9566 | 1.4787 |   64000 B |
+| ChainedResultProcessing      |    198.940 ns |  0.0732 |      - |     376 B |
+| NestedResults                |     14.120 ns |  0.0089 |      - |      48 B |
+| ResultWithLargeValue         |    690.190 ns |  3.8307 |      - |   10048 B |
+| FilterResults                | 48,246.960 ns | 15.0696 | 2.8980 |   86024 B |
+| ResultsInDictionary          | 98,298.110 ns | 30.7571 | 7.4921 |  198136 B |
 
 **Key Takeaways:**
 
