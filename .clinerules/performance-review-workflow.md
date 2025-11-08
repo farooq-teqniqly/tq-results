@@ -29,18 +29,18 @@ The repository includes an automated nightly performance workflow (`.github/work
 
 ### Files Created by Nightly Workflow
 
-The automated workflow creates/updates the following files:
+The automated workflow creates/updates the following files in the `performance_reviews/ci/` folder:
 
 #### Performance Review Reports
 
--   **Location**: `performance_reviews/nightly/`
+-   **Location**: `performance_reviews/ci/nightly/`
 -   **Naming**: `performance-review-YYYY-MM-DD.md`
 -   **Purpose**: Daily performance review with comparison tables and regression analysis
 -   **Retention**: Kept indefinitely for historical trend tracking
 
 #### Baseline Updates (No Regressions)
 
--   **Location**: `performance_reviews/baselines/baseline-current.json`
+-   **Location**: `performance_reviews/ci/baselines/baseline-current.json`
 -   **Purpose**: Current approved baseline for all benchmarks
 -   **Update**: Automatically updated when no regressions are detected
 -   **Commit**: Auto-committed with message `chore: update performance baseline - YYYY-MM-DD`
@@ -50,6 +50,31 @@ The automated workflow creates/updates the following files:
 -   **Labels**: `performance-regression`, `severity-{critical|major|minor}`
 -   **Content**: Full performance review with regression details
 -   **Purpose**: Track and manage performance regressions
+
+## Local Performance Reviews
+
+Local performance reviews are conducted manually by developers and should be stored in user-specific subfolders to avoid conflicts with CI-generated files.
+
+### File Organization for Local Reviews
+
+-   **Location**: `performance_reviews/user/{user_name}/`
+-   **Purpose**: Isolate local performance reviews and baselines from CI-generated content
+-   **Naming Convention**: Use descriptive subfolder names (e.g., `farooq_laptop`, `john_desktop`)
+-   **Access Control**: Only the GitHub workflow should check-in changes to `performance_reviews/ci/`
+
+### Files Created by Local Reviews
+
+#### Performance Review Reports
+
+-   **Location**: `performance_reviews/user/{user_name}/`
+-   **Naming**: `performance-review-YYYYMMDD.md` (e.g., `performance-review-11082025.md`)
+-   **Purpose**: Local performance review with comparison tables and regression analysis
+
+#### Baseline Files
+
+-   **Current Baseline**: `performance_reviews/user/{user_name}/baseline-current.json`
+-   **New Baseline**: `performance_reviews/user/{user_name}/baseline-new.json`
+-   **Purpose**: Track personal baseline performance for local comparisons
 
 ## When to Conduct Performance Reviews
 
@@ -68,15 +93,16 @@ Perform performance reviews:
 Execute the benchmark suite to get current performance measurements:
 
 ```bash
-dotnet run -c Release --project [BenchmarkProject]/[BenchmarkProject].csproj
+dotnet run -c Release --project Teqniqly.Results.Benchmarks/Teqniqly.Results.Benchmarks.csproj
 ```
 
-### 2. Generate Performance Review Document
+### 2. Run Comparison Script
 
-Create a timestamped Markdown file in the `performance_reviews` folder:
+Run the comparison script specifying your user folder and commit hash. For example:
 
--   **Naming pattern**: `performance-review-results-YYYY-MM-DD-HHMMSS.md`
--   **Example**: `performance_reviews/performance-review-results-2025-11-05-143022.md`
+```bash
+python .github/scripts/compare-benchmarks.py --baseline performance_reviews/user/farooq_laptop/baseline-current.json --cpu-results BenchmarkDotNet.Artifacts/results/Teqniqly.Results.Benchmarks.ResultCpuBenchmarks-report-github.md --memory-results BenchmarkDotNet.Artifacts/results/Teqniqly.Results.Benchmarks.ResultMemoryBenchmarks-report-github.md --output performance_reviews/user/farooq_laptop/performance-review-11082025.md --new-baseline performance_reviews/user/farooq_laptop/baseline-new.json --commit f4b494eeade680b1ae621e03605a5f09966ffd4f
+```
 
 ### 3. Document Structure
 
@@ -203,6 +229,8 @@ Update the benchmark project's README.md:
 ### Performance Review Files
 
 -   Keep all performance review files in the `performance_reviews` folder
+-   Local reviews: Store in `performance_reviews/user/{user_name}/` subfolders
+-   CI reviews: Store in `performance_reviews/ci/` folder (only CI should check-in changes here)
 -   Never delete old performance reviews
 -   Use for trend analysis and regression tracking
 -   Reference in commit messages when relevant
