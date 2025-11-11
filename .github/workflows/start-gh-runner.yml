@@ -1,7 +1,7 @@
 name: Start GitHub Runner VM
 on:
   schedule:
-    - cron: "30 14 * * *"
+    - cron: "0 23 * * *"
   workflow_dispatch:
     inputs:
       azure_resource_group_name:
