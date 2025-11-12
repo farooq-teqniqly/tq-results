@@ -37,6 +37,7 @@ namespace Teqniqly.Results.Tests
 
             Assert.False(result.IsSuccess);
             Assert.True(result.IsFailure);
+            Assert.IsType<TestError>(result.GetError());
 
             var exception = Assert.Throws<InvalidOperationException>(() => result.GetValue());
 
