@@ -16,7 +16,7 @@ def _clean_numeric_value(value_str: str, default: float = 0.0, is_int: bool = Fa
     cleaned = value_str.strip().replace('"', "")
 
     # Use regex to extract numeric value and unit
-    match = re.match(r'^([0-9,]+(?:\.[0-9]+)?)\s*(.*)$', cleaned)
+    match = re.match(r'^([0-9,]+(?:\.\d+)?)\s*(.*)$', cleaned)
     if not match:
         return default
 
