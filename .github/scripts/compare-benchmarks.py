@@ -4,8 +4,8 @@ Compare BenchmarkDotNet results against baseline and detect performance regressi
 """
 
 import argparse
+import csv
 import json
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -86,100 +86,48 @@ class RegressionDetector:
             return "⚠️", change_pct, "MINOR"
 
 
-def _find_table_start(lines: list[str]) -> int:
-    """Find the starting line of the markdown table."""
-    for i, line in enumerate(lines):
-        if "|" in line and "Method" in line:
-            return i
-    return -1
-
-
-def _parse_mean_value(mean_str: str) -> float:
-    """Parse mean time value and convert to nanoseconds."""
-    cleaned = mean_str.replace(",", "").replace(" ns", "").replace(" us", "")
-    mean_ns = float(cleaned)
-
-    # Convert microseconds to nanoseconds if needed
-    if "us" in mean_str or "μs" in mean_str:
-        mean_ns *= 1000
-
-    return mean_ns
-
-
-def _parse_allocated_bytes(parts: list[str]) -> int:
-    """Parse allocated bytes from table parts."""
-    for part in parts:
-        if "B" in part and part[0].isdigit():
-            return int(part.replace(",", "").replace(" B", ""))
-    return 0
-
-
-def _parse_gen_columns(parts: list[str]) -> tuple[float, float]:
-    """Parse Gen0/Gen1 columns from table parts."""
-    gen0 = gen1 = 0.0
-
-    if len(parts) <= 4:
-        return gen0, gen1
-
-    try:
-        for i, part in enumerate(parts):
-            if part.replace(".", "").replace("-", "").isdigit() or part == "-":
-                val = 0.0 if part == "-" else float(part)
-                if i == len(parts) - 3:  # Gen0 (before Allocated)
-                    gen0 = val
-                elif i == len(parts) - 2:  # Gen1 (before Allocated)
-                    gen1 = val
-    except (ValueError, IndexError):
-        pass
-
-    return gen0, gen1
-
-
-def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
-    """Parse a single table row into a BenchmarkResult."""
-    if len(parts) < 2:
-        return None
-
-    try:
-        name = parts[0]
-        mean_ns = _parse_mean_value(parts[1])
-        allocated = _parse_allocated_bytes(parts)
-        gen0, gen1 = _parse_gen_columns(parts)
-
-        return BenchmarkResult(
-            name=name,
-            mean_ns=mean_ns,
-            allocated_bytes=allocated,
-            gen0=gen0,
-            gen1=gen1,
-        )
-    except (ValueError, IndexError):
-        return None
-
-
-def parse_markdown_table(content: str) -> list[BenchmarkResult]:
-    """Parse BenchmarkDotNet markdown table into benchmark results."""
+def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
+    """Parse BenchmarkDotNet CSV results into benchmark results."""
     results = []
-    lines = content.split("\n")
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Parse mean time (remove commas and units)
+                mean_str = row.get("Mean", "0").replace(",", "").replace(" ns", "").replace('"', "")
+                mean_ns = float(mean_str) if mean_str else 0.0
 
-    table_start = _find_table_start(lines)
-    if table_start == -1:
-        return results
+                # Parse error (remove commas and units)
+                error_str = row.get("Error", "0").replace(",", "").replace(" ns", "").replace('"', "")
+                error_ns = float(error_str) if error_str else 0.0
 
-    # Skip header and separator
-    data_start = table_start + 2
+                # Parse std dev (remove commas and units)
+                stddev_str = row.get("StdDev", "0").replace(",", "").replace(" ns", "").replace('"', "")
+                stddev_ns = float(stddev_str) if stddev_str else 0.0
 
-    for line in lines[data_start:]:
-        if not line.strip() or "|" not in line:
-            break
+                # Parse allocated bytes (remove commas and units)
+                allocated_str = row.get("Allocated", "0").replace(",", "").replace(" B", "").replace('"', "")
+                allocated_bytes = int(allocated_str) if allocated_str and allocated_str != "-" else 0
 
-        parts = [p.strip() for p in line.split("|")][1:-1]  # Remove empty first/last
-        result = _parse_table_row(parts)
+                # Parse Gen0/Gen1
+                gen0_str = row.get("Gen0", "0").replace('"', "")
+                gen0 = float(gen0_str) if gen0_str and gen0_str != "-" else 0.0
 
-        if result:
-            results.append(result)
-        else:
-            print(f"Warning: Could not parse line: {line.strip()}", file=sys.stderr)
+                gen1_str = row.get("Gen1", "0").replace('"', "")
+                gen1 = float(gen1_str) if gen1_str and gen1_str != "-" else 0.0
+
+                results.append(BenchmarkResult(
+                    name=row["Method"],
+                    mean_ns=mean_ns,
+                    error_ns=error_ns,
+                    stddev_ns=stddev_ns,
+                    allocated_bytes=allocated_bytes,
+                    gen0=gen0,
+                    gen1=gen1,
+                ))
+    except (FileNotFoundError, KeyError, ValueError) as e:
+        print(f"Error parsing CSV {csv_path}: {e}", file=sys.stderr)
+        return []
 
     return results
 
@@ -258,7 +206,8 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
 
 def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
     """Determine if a benchmark is a memory benchmark."""
-    return result.gen0 > 0 or "Memory" in name or result.mean_ns > 100
+    # Memory benchmarks typically have significant Gen0/Gen1 collections or "Memory" in name
+    return (result.gen0 > 0 or result.gen1 > 0) or "Memory" in name
 
 
 def _compare_benchmark(
@@ -542,12 +491,12 @@ def main():
     )
     parser.add_argument("--baseline", required=True, help="Path to baseline JSON file")
     parser.add_argument(
-        "--cpu-results", required=True, help="Path to CPU benchmark markdown results"
+        "--cpu-results", required=True, help="Path to CPU benchmark CSV results"
     )
     parser.add_argument(
         "--memory-results",
         required=True,
-        help="Path to memory benchmark markdown results",
+        help="Path to memory benchmark CSV results",
     )
     parser.add_argument(
         "--output", required=True, help="Output path for performance review"
@@ -565,15 +514,13 @@ def main():
     # Parse current results
     current_results = {}
 
-    with open(args.cpu_results, "r", encoding="utf-8") as f:
-        cpu_content = f.read()
-        for result in parse_markdown_table(cpu_content):
-            current_results[result.name] = result
+    # Parse CPU benchmark results
+    for result in parse_csv_results(args.cpu_results):
+        current_results[result.name] = result
 
-    with open(args.memory_results, "r", encoding="utf-8") as f:
-        memory_content = f.read()
-        for result in parse_markdown_table(memory_content):
-            current_results[result.name] = result
+    # Parse memory benchmark results
+    for result in parse_csv_results(args.memory_results):
+        current_results[result.name] = result
 
     # Generate review
     review_md, has_regression, severity = generate_review(
