@@ -124,7 +124,9 @@ jobs:
             /o:"farooq-teqniqly" \
             /d:sonar.token="${SONAR_TOKEN}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+            /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
+            /d:sonar.security.enableProjectScan=true \
+            /d:sonar.qualitygate.wait=true
 
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
