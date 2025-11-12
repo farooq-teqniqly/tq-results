@@ -86,6 +86,20 @@ class RegressionDetector:
             return "⚠️", change_pct, "MINOR"
 
 
+def _clean_numeric_value(value_str: str, default: float = 0.0, is_int: bool = False) -> float | int:
+    """Clean and convert numeric CSV values, handling commas, units, and quotes."""
+    if not value_str or value_str == "-":
+        return default
+
+    # Remove commas, quotes, and common units
+    cleaned = value_str.replace(",", "").replace('"', "").replace(" ns", "").replace(" B", "")
+
+    try:
+        return int(cleaned) if is_int else float(cleaned)
+    except ValueError:
+        return default
+
+
 def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
     """Parse BenchmarkDotNet CSV results into benchmark results."""
     results = []
@@ -93,37 +107,14 @@ def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
         with open(csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # Parse mean time (remove commas and units)
-                mean_str = row.get("Mean", "0").replace(",", "").replace(" ns", "").replace('"', "")
-                mean_ns = float(mean_str) if mean_str else 0.0
-
-                # Parse error (remove commas and units)
-                error_str = row.get("Error", "0").replace(",", "").replace(" ns", "").replace('"', "")
-                error_ns = float(error_str) if error_str else 0.0
-
-                # Parse std dev (remove commas and units)
-                stddev_str = row.get("StdDev", "0").replace(",", "").replace(" ns", "").replace('"', "")
-                stddev_ns = float(stddev_str) if stddev_str else 0.0
-
-                # Parse allocated bytes (remove commas and units)
-                allocated_str = row.get("Allocated", "0").replace(",", "").replace(" B", "").replace('"', "")
-                allocated_bytes = int(allocated_str) if allocated_str and allocated_str != "-" else 0
-
-                # Parse Gen0/Gen1
-                gen0_str = row.get("Gen0", "0").replace('"', "")
-                gen0 = float(gen0_str) if gen0_str and gen0_str != "-" else 0.0
-
-                gen1_str = row.get("Gen1", "0").replace('"', "")
-                gen1 = float(gen1_str) if gen1_str and gen1_str != "-" else 0.0
-
                 results.append(BenchmarkResult(
                     name=row["Method"],
-                    mean_ns=mean_ns,
-                    error_ns=error_ns,
-                    stddev_ns=stddev_ns,
-                    allocated_bytes=allocated_bytes,
-                    gen0=gen0,
-                    gen1=gen1,
+                    mean_ns=_clean_numeric_value(row.get("Mean", "0")),
+                    error_ns=_clean_numeric_value(row.get("Error", "0")),
+                    stddev_ns=_clean_numeric_value(row.get("StdDev", "0")),
+                    allocated_bytes=_clean_numeric_value(row.get("Allocated", "0"), is_int=True),
+                    gen0=_clean_numeric_value(row.get("Gen0", "0")),
+                    gen1=_clean_numeric_value(row.get("Gen1", "0")),
                 ))
     except (FileNotFoundError, KeyError, ValueError) as e:
         print(f"Error parsing CSV {csv_path}: {e}", file=sys.stderr)
