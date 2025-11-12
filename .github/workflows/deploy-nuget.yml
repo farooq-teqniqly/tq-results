@@ -5,6 +5,8 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'  # Matches v1.0.0, v1.0.0-beta, v1.0.0-alpha.1, etc.
 
+  workflow_dispatch:
+
 jobs:
   build-and-test:
     name: Build and Test
