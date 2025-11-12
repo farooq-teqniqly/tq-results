@@ -82,7 +82,9 @@ jobs:
       run: dotnet pack Teqniqly.Results/Teqniqly.Results.csproj --configuration Release --no-restore --output ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }}
 
     - name: Push to NuGet
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
 
   sonarqube-analysis:
     name: SonarQube Code Coverage
@@ -126,7 +128,8 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
             /d:sonar.security.enableProjectScan=true \
-            /d:sonar.qualitygate.wait=true
+            /d:sonar.qualitygate.wait=true \
+            /d:sonar.coverage.exclusions="**/*.Tests/**,**/*.Benchmarks/**,**/samples/**" \
 
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
