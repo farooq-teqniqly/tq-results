@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 jobs:
-  start-vm:
+  stop-vm:
     runs-on: ubuntu-latest
     env:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
