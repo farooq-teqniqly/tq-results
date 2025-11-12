@@ -148,7 +148,7 @@ jobs:
             performance_reviews/ci/nightly/performance-review-*.md
 
       - name: Create issue for regressions
-        if: steps.regression-check.outputs.has_regression == 'true'
+        if: steps.regression-check.outputs.has_regression == 'true' && (steps.regression-check.outputs.severity == 'MAJOR' || steps.regression-check.outputs.severity == 'CRITICAL')
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -248,4 +248,4 @@ jobs:
           echo "ℹ️ Minor performance regressions detected"
           echo "Severity: MINOR"
           echo "These regressions are acceptable and workflow will succeed."
-          echo "Review the performance review file and GitHub issue for details."
+          echo "Review the performance review file for details."
