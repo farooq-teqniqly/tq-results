@@ -85,6 +85,7 @@ jobs:
   sonarqube-analysis:
     name: SonarQube Code Coverage
     runs-on: ubuntu-latest
+    needs: build-and-test
 
     steps:
       - name: Checkout code
@@ -100,14 +101,14 @@ jobs:
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-          path: ~\sonar\cache
+          path: ~/sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Install SonarQube Scanner
         run: |
-          dotnet tool install --global dotnet-sonarscanner
-          dotnet tool install --global dotnet-coverage
+          dotnet tool install --global dotnet-sonarscanner --version 11.0.0
+          dotnet tool install --global dotnet-coverage --version 18.1.0
 
       - name: Restore dependencies
         run: dotnet restore
