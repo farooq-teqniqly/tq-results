@@ -4,6 +4,7 @@ Compare BenchmarkDotNet results against baseline and detect performance regressi
 """
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -86,100 +87,78 @@ class RegressionDetector:
             return "⚠️", change_pct, "MINOR"
 
 
-def _find_table_start(lines: list[str]) -> int:
-    """Find the starting line of the markdown table."""
-    for i, line in enumerate(lines):
-        if "|" in line and "Method" in line:
-            return i
-    return -1
+def _clean_numeric_value(value_str: str, default: float = 0.0, is_int: bool = False) -> float | int:
+    """Clean and convert numeric CSV values with proper unit normalization.
 
+    Handles time units (s, ms, us/µs, ns) -> nanoseconds
+    Handles size units (B, KB, MB, GB) -> bytes
+    """
+    if not value_str or value_str.strip() == "-" or value_str.strip() == "":
+        return default
 
-def _parse_mean_value(mean_str: str) -> float:
-    """Parse mean time value and convert to nanoseconds."""
-    cleaned = mean_str.replace(",", "").replace(" ns", "").replace(" us", "")
-    mean_ns = float(cleaned)
+    # Trim whitespace and remove quotes
+    cleaned = value_str.strip().replace('"', "")
 
-    # Convert microseconds to nanoseconds if needed
-    if "us" in mean_str or "μs" in mean_str:
-        mean_ns *= 1000
+    # Use regex to extract numeric value and unit (ReDoS-safe)
+    match = re.match(r'^([0-9,]++(?:\.\d++)?)\s*(.*)$', cleaned)
+    if not match:
+        return default
 
-    return mean_ns
-
-
-def _parse_allocated_bytes(parts: list[str]) -> int:
-    """Parse allocated bytes from table parts."""
-    for part in parts:
-        if "B" in part and part[0].isdigit():
-            return int(part.replace(",", "").replace(" B", ""))
-    return 0
-
-
-def _parse_gen_columns(parts: list[str]) -> tuple[float, float]:
-    """Parse Gen0/Gen1 columns from table parts."""
-    gen0 = gen1 = 0.0
-
-    if len(parts) <= 4:
-        return gen0, gen1
+    num_str, unit = match.groups()
+    num_str = num_str.replace(",", "")  # Remove commas
 
     try:
-        for i, part in enumerate(parts):
-            if part.replace(".", "").replace("-", "").isdigit() or part == "-":
-                val = 0.0 if part == "-" else float(part)
-                if i == len(parts) - 3:  # Gen0 (before Allocated)
-                    gen0 = val
-                elif i == len(parts) - 2:  # Gen1 (before Allocated)
-                    gen1 = val
-    except (ValueError, IndexError):
-        pass
+        value = float(num_str)
+    except ValueError:
+        return default
 
-    return gen0, gen1
+    # Normalize units
+    unit = unit.strip().lower()
 
+    # Time unit conversions to nanoseconds
+    if unit in ("s", "sec"):
+        value *= 1_000_000_000  # seconds to nanoseconds
+    elif unit in ("ms", "msec"):
+        value *= 1_000_000  # milliseconds to nanoseconds
+    elif unit in ("us", "µs", "μs"):
+        value *= 1_000  # microseconds to nanoseconds
+    elif unit == "ns":
+        pass  # already in nanoseconds
+    # Size unit conversions to bytes
+    elif unit == "kb":
+        value *= 1_024  # kilobytes to bytes
+    elif unit == "mb":
+        value *= 1_024 * 1_024  # megabytes to bytes
+    elif unit == "gb":
+        value *= 1_024 * 1_024 * 1_024  # gigabytes to bytes
+    elif unit in ("b", ""):
+        pass  # already in bytes or no unit
+    else:
+        # Unknown unit, return default
+        return default
 
-def _parse_table_row(parts: list[str]) -> BenchmarkResult | None:
-    """Parse a single table row into a BenchmarkResult."""
-    if len(parts) < 2:
-        return None
-
-    try:
-        name = parts[0]
-        mean_ns = _parse_mean_value(parts[1])
-        allocated = _parse_allocated_bytes(parts)
-        gen0, gen1 = _parse_gen_columns(parts)
-
-        return BenchmarkResult(
-            name=name,
-            mean_ns=mean_ns,
-            allocated_bytes=allocated,
-            gen0=gen0,
-            gen1=gen1,
-        )
-    except (ValueError, IndexError):
-        return None
+    return int(value) if is_int else value
 
 
-def parse_markdown_table(content: str) -> list[BenchmarkResult]:
-    """Parse BenchmarkDotNet markdown table into benchmark results."""
+def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
+    """Parse BenchmarkDotNet CSV results into benchmark results."""
     results = []
-    lines = content.split("\n")
-
-    table_start = _find_table_start(lines)
-    if table_start == -1:
-        return results
-
-    # Skip header and separator
-    data_start = table_start + 2
-
-    for line in lines[data_start:]:
-        if not line.strip() or "|" not in line:
-            break
-
-        parts = [p.strip() for p in line.split("|")][1:-1]  # Remove empty first/last
-        result = _parse_table_row(parts)
-
-        if result:
-            results.append(result)
-        else:
-            print(f"Warning: Could not parse line: {line.strip()}", file=sys.stderr)
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                results.append(BenchmarkResult(
+                    name=row["Method"],
+                    mean_ns=_clean_numeric_value(row.get("Mean", "0")),
+                    error_ns=_clean_numeric_value(row.get("Error", "0")),
+                    stddev_ns=_clean_numeric_value(row.get("StdDev", "0")),
+                    allocated_bytes=_clean_numeric_value(row.get("Allocated", "0"), is_int=True),
+                    gen0=_clean_numeric_value(row.get("Gen0", "0")),
+                    gen1=_clean_numeric_value(row.get("Gen1", "0")),
+                ))
+    except (FileNotFoundError, KeyError, ValueError) as e:
+        print(f"Error parsing CSV {csv_path}: {e}", file=sys.stderr)
+        return []
 
     return results
 
@@ -258,7 +237,8 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
 
 def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
     """Determine if a benchmark is a memory benchmark."""
-    return result.gen0 > 0 or "Memory" in name or result.mean_ns > 100
+    # Memory benchmarks typically have significant Gen0/Gen1 collections or "Memory" in name
+    return (result.gen0 > 0 or result.gen1 > 0) or "Memory" in name
 
 
 def _compare_benchmark(
@@ -542,12 +522,12 @@ def main():
     )
     parser.add_argument("--baseline", required=True, help="Path to baseline JSON file")
     parser.add_argument(
-        "--cpu-results", required=True, help="Path to CPU benchmark markdown results"
+        "--cpu-results", required=True, help="Path to CPU benchmark CSV results"
     )
     parser.add_argument(
         "--memory-results",
         required=True,
-        help="Path to memory benchmark markdown results",
+        help="Path to memory benchmark CSV results",
     )
     parser.add_argument(
         "--output", required=True, help="Output path for performance review"
@@ -565,15 +545,13 @@ def main():
     # Parse current results
     current_results = {}
 
-    with open(args.cpu_results, "r", encoding="utf-8") as f:
-        cpu_content = f.read()
-        for result in parse_markdown_table(cpu_content):
-            current_results[result.name] = result
+    # Parse CPU benchmark results
+    for result in parse_csv_results(args.cpu_results):
+        current_results[result.name] = result
 
-    with open(args.memory_results, "r", encoding="utf-8") as f:
-        memory_content = f.read()
-        for result in parse_markdown_table(memory_content):
-            current_results[result.name] = result
+    # Parse memory benchmark results
+    for result in parse_csv_results(args.memory_results):
+        current_results[result.name] = result
 
     # Generate review
     review_md, has_regression, severity = generate_review(
