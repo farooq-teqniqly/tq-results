@@ -24,6 +24,7 @@ class BenchmarkResult:
         allocated_bytes: int = 0,
         gen0: float = 0,
         gen1: float = 0,
+        benchmark_type: str = "cpu",
     ):
         self.name = name
         self.mean_ns = mean_ns
@@ -32,6 +33,7 @@ class BenchmarkResult:
         self.allocated_bytes = allocated_bytes
         self.gen0 = gen0
         self.gen1 = gen1
+        self.benchmark_type = benchmark_type
 
 
 class RegressionDetector:
@@ -140,7 +142,7 @@ def _clean_numeric_value(value_str: str, default: float = 0.0, is_int: bool = Fa
     return int(value) if is_int else value
 
 
-def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
+def parse_csv_results(csv_path: str, benchmark_type: str = "cpu") -> list[BenchmarkResult]:
     """Parse BenchmarkDotNet CSV results into benchmark results."""
     results = []
     try:
@@ -155,6 +157,7 @@ def parse_csv_results(csv_path: str) -> list[BenchmarkResult]:
                     allocated_bytes=_clean_numeric_value(row.get("Allocated", "0"), is_int=True),
                     gen0=_clean_numeric_value(row.get("Gen0", "0")),
                     gen1=_clean_numeric_value(row.get("Gen1", "0")),
+                    benchmark_type=benchmark_type,
                 ))
     except (FileNotFoundError, KeyError, ValueError) as e:
         print(f"Error parsing CSV {csv_path}: {e}", file=sys.stderr)
@@ -185,6 +188,7 @@ def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
             error_ns=bench.get("error_ns", 0),
             stddev_ns=bench.get("stddev_ns", 0),
             allocated_bytes=bench.get("allocated_bytes", 0),
+            benchmark_type="cpu",
         )
 
     for bench in data.get("memory_benchmarks", []):
@@ -194,6 +198,7 @@ def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
             allocated_bytes=bench.get("allocated_bytes", 0),
             gen0=bench.get("gen0", 0),
             gen1=bench.get("gen1", 0),
+            benchmark_type="memory",
         )
 
     baseline_date = data.get("date", "unknown")
@@ -214,8 +219,8 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
             "allocated_bytes": result.allocated_bytes,
         }
 
-        # Distinguish CPU vs Memory benchmarks by presence of Gen data
-        if result.gen0 > 0 or result.gen1 > 0 or "Memory" in name:
+        # Distinguish CPU vs Memory benchmarks by benchmark_type
+        if result.benchmark_type == "memory":
             bench_data["gen0"] = result.gen0
             bench_data["gen1"] = result.gen1
             memory_benchmarks.append(bench_data)
@@ -237,8 +242,7 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
 
 def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
     """Determine if a benchmark is a memory benchmark."""
-    # Memory benchmarks typically have significant Gen0/Gen1 collections or "Memory" in name
-    return (result.gen0 > 0 or result.gen1 > 0) or "Memory" in name
+    return result.benchmark_type == "memory"
 
 
 def _compare_benchmark(
@@ -546,11 +550,11 @@ def main():
     current_results = {}
 
     # Parse CPU benchmark results
-    for result in parse_csv_results(args.cpu_results):
+    for result in parse_csv_results(args.cpu_results, "cpu"):
         current_results[result.name] = result
 
     # Parse memory benchmark results
-    for result in parse_csv_results(args.memory_results):
+    for result in parse_csv_results(args.memory_results, "memory"):
         current_results[result.name] = result
 
     # Generate review
