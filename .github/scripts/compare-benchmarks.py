@@ -11,6 +11,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Benchmark type constants
+BENCHMARK_TYPE_CPU = "cpu"
+BENCHMARK_TYPE_MEMORY = "memory"
+
 
 class BenchmarkResult:
     """Represents a single benchmark result."""
@@ -24,7 +28,7 @@ class BenchmarkResult:
         allocated_bytes: int = 0,
         gen0: float = 0,
         gen1: float = 0,
-        benchmark_type: str = "cpu",
+        benchmark_type: str = BENCHMARK_TYPE_CPU,
     ):
         self.name = name
         self.mean_ns = mean_ns
@@ -188,7 +192,7 @@ def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
             error_ns=bench.get("error_ns", 0),
             stddev_ns=bench.get("stddev_ns", 0),
             allocated_bytes=bench.get("allocated_bytes", 0),
-            benchmark_type="cpu",
+            benchmark_type=BENCHMARK_TYPE_CPU,
         )
 
     for bench in data.get("memory_benchmarks", []):
@@ -198,7 +202,7 @@ def load_baseline(path: str) -> tuple[dict[str, BenchmarkResult], str]:
             allocated_bytes=bench.get("allocated_bytes", 0),
             gen0=bench.get("gen0", 0),
             gen1=bench.get("gen1", 0),
-            benchmark_type="memory",
+            benchmark_type=BENCHMARK_TYPE_MEMORY,
         )
 
     baseline_date = data.get("date", "unknown")
@@ -220,7 +224,7 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
         }
 
         # Distinguish CPU vs Memory benchmarks by benchmark_type
-        if result.benchmark_type == "memory":
+        if result.benchmark_type == BENCHMARK_TYPE_MEMORY:
             bench_data["gen0"] = result.gen0
             bench_data["gen1"] = result.gen1
             memory_benchmarks.append(bench_data)
@@ -242,7 +246,7 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
 
 def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
     """Determine if a benchmark is a memory benchmark."""
-    return result.benchmark_type == "memory"
+    return result.benchmark_type == BENCHMARK_TYPE_MEMORY
 
 
 def _compare_benchmark(
@@ -550,11 +554,11 @@ def main():
     current_results = {}
 
     # Parse CPU benchmark results
-    for result in parse_csv_results(args.cpu_results, "cpu"):
+    for result in parse_csv_results(args.cpu_results, BENCHMARK_TYPE_CPU):
         current_results[result.name] = result
 
     # Parse memory benchmark results
-    for result in parse_csv_results(args.memory_results, "memory"):
+    for result in parse_csv_results(args.memory_results, BENCHMARK_TYPE_MEMORY):
         current_results[result.name] = result
 
     # Generate review
