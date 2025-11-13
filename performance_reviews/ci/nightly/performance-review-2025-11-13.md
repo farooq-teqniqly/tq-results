@@ -1,56 +1,54 @@
-# Performance Review Results - Initial Baseline
+# Performance Review Results
 
-**Date**: 2025-11-13 05:39:24 UTC
-**Baseline**: Initial Run
-**Commit**: 6b36e567178926362509080d7bd774b1dba343f4
+**Date**: 2025-11-13 17:51:21 UTC
+**Baseline**: 2025-11-13T05:39:24.824336
+**Commit**: a6be5e03af539218dbfe466034c1dc9570cff101
 
 ## Summary
 
-This is the **initial benchmark run**. No baseline exists for comparison.
-
 - **Total Benchmarks**: 23
-- **Status**: ✅ INITIAL BASELINE ESTABLISHED
+- **Regressions**: 0
+- **Improvements**: 1
+- **Status**: ✅ PASS
 
-## Benchmarks Recorded
+## CPU Benchmarks
 
-The following benchmarks will serve as the baseline for future comparisons:
+| Benchmark | Baseline | Current | Change | Status |
+|-----------|----------|---------|--------|--------|
+| CreateSuccessResult_String | 14.829 ns | 7.826 ns | -47.2% | ✅  |
+| CreateSuccessResult_Int | 7.658 ns | 7.501 ns | -2.1% | ➡️  |
+| CreateSuccessResult_Unit | 7.967 ns | 7.938 ns | -0.4% | ➡️  |
+| CreateFailureResult_String | 9.559 ns | 9.480 ns | -0.8% | ➡️  |
+| CreateFailureResult_Int | 9.552 ns | 9.100 ns | -4.7% | ➡️  |
+| CreateFailureResult_Unit | 9.191 ns | 9.047 ns | -1.6% | ➡️  |
+| GetValue_Success | 9.446 ns | 9.019 ns | -4.5% | ➡️  |
+| GetError_Failure | 8.880 ns | 8.795 ns | -1.0% | ➡️  |
+| CheckIsSuccess_OnSuccessResult | 9.191 ns | 8.906 ns | -3.1% | ➡️  |
+| CheckIsFailure_OnFailureResult | 7.007 ns | 7.227 ns | +3.1% | ➡️  |
+| CompleteSuccessWorkflow | 7.162 ns | 7.431 ns | +3.8% | ➡️  |
+| CompleteFailureWorkflow | 8.850 ns | 8.767 ns | -0.9% | ➡️  |
 
+## Memory Benchmarks
 
-### CPU Benchmarks
+| Benchmark | Baseline | Current | Alloc Change | Gen0/1 | Status |
+|-----------|----------|---------|--------------|--------|--------|
+| CreateAndStoreResultsInArray | 84,024 B | 84,024 B | 0.0% | 14.0/2.9 | ➡️  |
+| CreateAndStoreResultsInList | 64,056 B | 64,056 B | 0.0% | 23.9/0.2 | ➡️  |
+| ReuseSuccessResult | 24 B | 24 B | 0.0% | 0.0/0.0 | ➡️  |
+| ReuseErrorInstance | 24,024 B | 24,024 B | 0.0% | 3.9/0.3 | ➡️  |
+| CreateNewErrorInstances | 88,000 B | 88,000 B | 0.0% | 15.6/3.7 | ➡️  |
+| CreateNewValueInstances | 64,000 B | 64,000 B | 0.0% | 24.4/0.1 | ➡️  |
+| ChainedResultProcessing | 376 B | 376 B | 0.0% | 0.1/0.0 | ➡️  |
+| NestedResults | 48 B | 48 B | 0.0% | 0.0/0.0 | ➡️  |
+| ResultWithLargeValue | 10,048 B | 10,048 B | 0.0% | 3.8/0.0 | ➡️  |
+| FilterResults | 86,024 B | 86,024 B | 0.0% | 15.1/2.9 | ➡️  |
+| ResultsInDictionary | 198,136 B | 198,136 B | 0.0% | 30.6/9.9 | ➡️  |
 
-- **CreateSuccessResult_String**: 14.829 ns (24 B)
-- **CreateSuccessResult_Int**: 7.658 ns (24 B)
-- **CreateSuccessResult_Unit**: 7.967 ns (24 B)
-- **CreateFailureResult_String**: 9.559 ns (24 B)
-- **CreateFailureResult_Int**: 9.552 ns (24 B)
-- **CreateFailureResult_Unit**: 9.191 ns (24 B)
-- **GetValue_Success**: 9.446 ns (24 B)
-- **GetError_Failure**: 8.880 ns (24 B)
-- **CheckIsSuccess_OnSuccessResult**: 9.191 ns (24 B)
-- **CheckIsFailure_OnFailureResult**: 7.007 ns (24 B)
-- **CompleteSuccessWorkflow**: 7.162 ns (24 B)
-- **CompleteFailureWorkflow**: 8.850 ns (24 B)
+## Action Items
 
-### Memory Benchmarks
-
-- **CreateAndStoreResultsInArray**: 52856.840 ns (84,024 B, Gen0/1: 14.1/2.7)
-- **CreateAndStoreResultsInList**: 37389.890 ns (64,056 B, Gen0/1: 24.0/0.1)
-- **ReuseSuccessResult**: 6569.730 ns (24 B, Gen0/1: 0.0/0.0)
-- **ReuseErrorInstance**: 14019.010 ns (24,024 B, Gen0/1: 3.9/0.3)
-- **CreateNewErrorInstances**: 56590.460 ns (88,000 B, Gen0/1: 15.7/3.9)
-- **CreateNewValueInstances**: 48036.720 ns (64,000 B, Gen0/1: 10.4/1.5)
-- **ChainedResultProcessing**: 201.640 ns (376 B, Gen0/1: 0.1/0.0)
-- **NestedResults**: 14.480 ns (48 B, Gen0/1: 0.0/0.0)
-- **ResultWithLargeValue**: 718.110 ns (10,048 B, Gen0/1: 3.8/0.0)
-- **FilterResults**: 48198.690 ns (86,024 B, Gen0/1: 15.2/2.9)
-- **ResultsInDictionary**: 99677.680 ns (198,136 B, Gen0/1: 30.8/7.8)
-
-## Next Steps
-
-- [x] Initial baseline established
-- [x] Future runs will compare against this baseline
-- [x] Performance regressions will be automatically detected
+- [x] No regressions detected
+- [x] Baseline will be automatically updated
 
 ## Conclusion
 
-✅ **Initial baseline successfully established.** Future benchmark runs will compare against these values.
+✅ **All benchmarks passed.** Performance is within acceptable range of baseline.
