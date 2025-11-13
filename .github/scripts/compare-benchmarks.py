@@ -244,7 +244,7 @@ def save_baseline(results: dict[str, BenchmarkResult], path: str, commit: str = 
         json.dump(baseline, f, indent=2)
 
 
-def _is_memory_benchmark(result: BenchmarkResult, name: str) -> bool:
+def _is_memory_benchmark(result: BenchmarkResult) -> bool:
     """Determine if a benchmark is a memory benchmark."""
     return result.benchmark_type == BENCHMARK_TYPE_MEMORY
 
@@ -255,7 +255,7 @@ def _compare_benchmark(
     current_result: BenchmarkResult,
 ) -> tuple[str, float, str, bool]:
     """Compare a single benchmark. Returns (status, change_pct, severity, is_memory)."""
-    is_memory = _is_memory_benchmark(current_result, name)
+    is_memory = _is_memory_benchmark(current_result)
 
     if is_memory:
         status, change_pct, severity = RegressionDetector.compare_memory(
@@ -414,10 +414,10 @@ The following benchmarks will serve as the baseline for future comparisons:
 
 """
     cpu_benchmarks = [
-        r for name, r in current.items() if not _is_memory_benchmark(r, name)
+        r for name, r in current.items() if not _is_memory_benchmark(r)
     ]
     memory_benchmarks = [
-        r for name, r in current.items() if _is_memory_benchmark(r, name)
+        r for name, r in current.items() if _is_memory_benchmark(r)
     ]
 
     if cpu_benchmarks:
