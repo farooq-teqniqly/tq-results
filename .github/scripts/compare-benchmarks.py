@@ -250,7 +250,6 @@ def _is_memory_benchmark(result: BenchmarkResult) -> bool:
 
 
 def _compare_benchmark(
-    name: str,
     baseline_result: BenchmarkResult,
     current_result: BenchmarkResult,
 ) -> tuple[str, float, str, bool]:
@@ -459,7 +458,7 @@ def _compare_all_benchmarks(
 
         baseline_result = baseline[name]
         status, change_pct, severity, is_memory = _compare_benchmark(
-            name, baseline_result, current_result
+            baseline_result, current_result
         )
 
         comparison = (
